@@ -130,6 +130,22 @@
   .rec-row button:active{transform:translateY(3px)}
   .rec-del{border:none;background:#fff;color:#E8505B;font-weight:800;border-radius:14px;padding:10px 16px;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.08)}
 
+  /* Raidės (klausyk ir rink raidę) */
+  .letters{display:flex;flex-direction:column;align-items:center;gap:16px;width:min(88vw,440px)}
+  .letters[hidden]{display:none}
+  .lcount{font-weight:800;color:var(--muted);font-size:14px}
+  .luni{border:none;cursor:pointer;background:none;font-size:clamp(96px,30vw,170px);line-height:1;transition:transform .1s ease;filter:drop-shadow(0 10px 14px rgba(0,0,0,.12))}
+  .luni:active{transform:scale(.93)}
+  .lhint{font-weight:700;color:var(--muted);font-size:15px;margin-top:-8px}
+  .lopts{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%}
+  .lopt{border:none;cursor:pointer;background:#fff;border-radius:20px;padding:14px;font-weight:900;
+    font-size:clamp(44px,14vw,72px);color:var(--ctrl);box-shadow:0 5px 0 rgba(124,92,191,.2);transition:transform .1s ease, background .2s ease}
+  .lopt:active{transform:translateY(3px)}
+  .lopt:disabled{cursor:default}
+  .lopt.right{background:#D7F5E3;color:#16A085;box-shadow:0 5px 0 rgba(22,160,133,.4)}
+  .lopt.wrong{background:#FCE2E2;color:#E8505B;animation:shake .4s}
+  .lmsg{font-weight:800;font-size:18px;min-height:22px;text-align:center;color:var(--ink)}
+
   .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);
     background:#34303D;color:#fff;font-weight:600;font-size:14px;line-height:1.4;padding:13px 16px;border-radius:14px;
     max-width:90vw;text-align:center;opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;z-index:9}
@@ -200,6 +216,14 @@
       <button class="small" id="recPlay" style="background:#16A085;box-shadow:0 4px 0 rgba(15,120,100,.45)" aria-label="Klausyti">▶</button>
       <button class="rec-del" id="recDel">🗑 Ištrinti šio žodžio įrašą</button>
     </div>
+
+    <div class="letters" id="letters" hidden>
+      <div class="lcount" id="lCount"></div>
+      <button class="luni" id="lUni" aria-label="Klausyk">🦄</button>
+      <div class="lhint">paspausk 🦄 ir išgirsi raidę</div>
+      <div class="lopts" id="lOpts"></div>
+      <div class="lmsg" id="lMsg"></div>
+    </div>
   </div>
 
   <div class="nav">
@@ -219,6 +243,7 @@
   const PALETTE=["#E8505B","#2D6A9F","#1B9E77","#8E44AD","#E67E22","#0E8E9A","#D6336C","#C2410C"];
 
   const LEVELS = [
+    { name:"Raidės", letterGame:true },
     { name:"1 pamoka", words:[
       {syll:["MA","MA"], word:"MAMA", emoji:"👩"},
       {syll:["TĖ","TĖ"], word:"TĖTĖ", emoji:"👨"},
@@ -349,13 +374,22 @@
   let lvl=0, idx=0, audioOn=true, order=[], weights={}, mode="cards";
   let bPool=[], bSyll=[], bOrder=[], bIdx=0, bSolved=0, bTarget=null, bPlaced=0;
   let pPool=[], pOrder=[], pIdx=0, pSolved=0, pTarget=null;
+  const LETTERS=["A","E","Ė","I","O","U","M","S","L","T","K","P","N","V","R","B","D","G","Ž","Š"];
+  const FIRST_WORD = LEVELS.findIndex(L=>L.words && L.words.some(w=>w.syll));
+  let lOrder=[], lIdx=0, lSolved=0, lTarget=null;
 
   // lygių mygtukai
   const levelsBox=$("levels");
   LEVELS.forEach((L,i)=>{
     const b=document.createElement("button");
     b.className="lvl"; b.textContent=L.name; b.setAttribute("aria-pressed", i===0);
-    b.onclick=()=>{ lvl=i; setLevel(); paintLevels(); if(mode==="build") startBuild(); else if(mode==="pick") startPick(); };
+    b.onclick=()=>{
+      lvl=i; paintLevels();
+      if(LEVELS[lvl].letterGame){ setMode("letters"); return; }
+      if(mode==="letters") mode="cards";
+      setLevel();
+      if(mode==="build") startBuild(); else if(mode==="pick") startPick(); else if(mode!=="rec") render();
+    };
     levelsBox.appendChild(b);
   });
   function paintLevels(){ [...levelsBox.children].forEach((b,i)=>b.setAttribute("aria-pressed", i===lvl)); }
@@ -467,8 +501,8 @@
 
   // ---- Sudėk žodį ----
   function startBuild(){
-    bPool=LEVELS[lvl].words.filter(w=>w.syll && w.syll.length>=2);
-    if(bPool.length<1) bPool=LEVELS[0].words.slice();
+    bPool=(LEVELS[lvl].words||[]).filter(w=>w.syll && w.syll.length>=2);
+    if(bPool.length<1) bPool=LEVELS[FIRST_WORD].words.filter(w=>w.syll && w.syll.length>=2);
     bSyll=[...new Set(bPool.flatMap(w=>w.syll))];
     bOrder=bPool.map((_,i)=>i); shuffleArr(bOrder); bIdx=0; bSolved=0; newBuild();
   }
@@ -513,8 +547,8 @@
 
   // ---- Rask paveikslėlį (skaityk žodį -> rink paveikslėlį) ----
   function startPick(){
-    pPool=LEVELS[lvl].words.filter(w=>w.emoji);
-    if(pPool.length<4) pPool=LEVELS[0].words.slice();
+    pPool=(LEVELS[lvl].words||[]).filter(w=>w.emoji);
+    if(pPool.length<4) pPool=LEVELS[FIRST_WORD].words.slice();
     pOrder=pPool.map((_,i)=>i); shuffleArr(pOrder); pIdx=0; pSolved=0; newPick();
   }
   function newPick(){
@@ -544,21 +578,45 @@
   }
 
   function setMode(m){
+    if((m==="build"||m==="pick") && !LEVELS[lvl].words){ lvl=FIRST_WORD; paintLevels(); setLevel(); }
     mode=m; const cards=(m==="cards");
     card.style.display=cards?"":"none";
     $("build").hidden=(m!=="build");
     $("pick").hidden=(m!=="pick");
     $("rec").hidden=(m!=="rec");
+    $("letters").hidden=(m!=="letters");
     document.querySelector(".nav").style.display=cards?"flex":"none";
     $("mastery").hidden=!cards;
     $("buildBtn").setAttribute("aria-pressed",m==="build");
     $("pickBtn").setAttribute("aria-pressed",m==="pick");
     $("micBtn").setAttribute("aria-pressed",m==="rec");
-    if(m==="build") startBuild(); else if(m==="pick") startPick(); else if(m==="rec") openRec(); else render();
+    if(m==="build") startBuild(); else if(m==="pick") startPick(); else if(m==="rec") openRec(); else if(m==="letters") startLetters(); else render();
   }
   $("buildBtn").onclick=()=>setMode(mode==="build"?"cards":"build");
   $("pickBtn").onclick=()=>setMode(mode==="pick"?"cards":"pick");
   $("micBtn").onclick=()=>setMode(mode==="rec"?"cards":"rec");
+
+  // ---- Raidės: klausyk ir rink raidę ----
+  function startLetters(){ lOrder=LETTERS.map((_,i)=>i); shuffleArr(lOrder); lIdx=0; lSolved=0; newLetterRound(); }
+  function newLetterRound(){
+    lTarget=LETTERS[lOrder[lIdx%lOrder.length]];
+    const pool=LETTERS.filter(x=>x!==lTarget); shuffleArr(pool);
+    const opts=shuffleArr([lTarget, pool[0], pool[1], pool[2]]);
+    const box=$("lOpts"); box.innerHTML="";
+    opts.forEach(L=>{ const b=document.createElement("button"); b.className="lopt"; b.type="button"; b.textContent=L; b.onclick=()=>chooseLetter(L,b); box.appendChild(b); });
+    $("lMsg").textContent=""; $("lCount").textContent="Raidės · "+lSolved+" ⭐";
+    sayLetter(lTarget);
+  }
+  function sayLetter(L){ sayWord({word:L, syll:[L]}, true, true); }
+  function chooseLetter(L,btn){
+    if(L===lTarget){
+      btn.classList.add("right"); sparkle($("lUni")); lSolved++;
+      $("lMsg").textContent="Šaunuolytė! 🎉"; $("lCount").textContent="Raidės · "+lSolved+" ⭐";
+      [...$("lOpts").children].forEach(b=>b.disabled=true);
+      setTimeout(()=>{ lIdx++; newLetterRound(); }, 1200);
+    } else { btn.classList.add("wrong"); btn.disabled=true; $("lMsg").textContent="Bandyk dar 🙂"; }
+  }
+  $("lUni").onclick=()=>sayLetter(lTarget);
 
   // ---- Įrašytas balsas (telefone) ----
   function recKey(w){ return w.sentence ? w.words.join(" ") : (w.word||w.syll.join("")); }
@@ -578,7 +636,10 @@
   async function loadRecKeys(){ try{ const d=await db(); const t=d.transaction("rec","readonly"); const q=t.objectStore("rec").getAllKeys(); q.onsuccess=()=>{ recSet=new Set(q.result); if(mode==="rec") renderRec(); }; }catch(e){} }
 
   let recList=[], recIdx=0, mediaRec=null, chunks=[];
-  function buildRecList(){ const seen=new Set(); recList=[]; LEVELS.forEach(L=>L.words.forEach(w=>{ const k=recKey(w); if(!seen.has(k)){ seen.add(k); recList.push({key:k,label:k,w}); } })); }
+  function buildRecList(){ const seen=new Set(); recList=[];
+    LETTERS.forEach(L=>{ if(!seen.has(L)){ seen.add(L); recList.push({key:L,label:L}); } });
+    LEVELS.forEach(L=> L.words && L.words.forEach(w=>{ const k=recKey(w); if(!seen.has(k)){ seen.add(k); recList.push({key:k,label:k}); } }));
+  }
   function openRec(){ if(!recList.length) buildRecList(); renderRec(); }
   function renderRec(){
     const it=recList[recIdx];
@@ -641,7 +702,7 @@
     }
   })();
 
-  setLevel();
+  if(LEVELS[lvl].letterGame) setMode("letters"); else setLevel();
 </script>
 </body>
 </html>
