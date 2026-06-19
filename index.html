@@ -134,9 +134,11 @@
   .letters{display:flex;flex-direction:column;align-items:center;gap:16px;width:min(88vw,440px)}
   .letters[hidden]{display:none}
   .lcount{font-weight:800;color:var(--muted);font-size:14px}
-  .luni{border:none;cursor:pointer;background:none;font-size:clamp(96px,30vw,170px);line-height:1;transition:transform .1s ease;filter:drop-shadow(0 10px 14px rgba(0,0,0,.12))}
+  .luni{position:relative;border:none;cursor:pointer;background:none;font-size:clamp(96px,30vw,170px);line-height:1;transition:transform .1s ease;filter:drop-shadow(0 10px 14px rgba(0,0,0,.12))}
   .luni:active{transform:scale(.93)}
-  .lhint{font-weight:700;color:var(--muted);font-size:15px;margin-top:-8px}
+  .luni .acc{position:absolute;top:.02em;right:.04em;font-size:.4em;filter:drop-shadow(0 3px 5px rgba(0,0,0,.2));pointer-events:none}
+  .lhint{font-weight:700;color:var(--muted);font-size:15px;margin-top:-8px;text-align:center}
+  .lmsg{font-weight:800;font-size:18px;min-height:22px;text-align:center;color:var(--ink)}
   .lopts{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%}
   .lopt{border:none;cursor:pointer;background:#fff;border-radius:20px;padding:14px;font-weight:900;
     font-size:clamp(44px,14vw,72px);color:var(--ctrl);box-shadow:0 5px 0 rgba(124,92,191,.2);transition:transform .1s ease, background .2s ease}
@@ -144,15 +146,42 @@
   .lopt:disabled{cursor:default}
   .lopt.right{background:#D7F5E3;color:#16A085;box-shadow:0 5px 0 rgba(22,160,133,.4)}
   .lopt.wrong{background:#FCE2E2;color:#E8505B;animation:shake .4s}
-  .lmsg{font-weight:800;font-size:18px;min-height:22px;text-align:center;color:var(--ink)}
 
   .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);
     background:#34303D;color:#fff;font-weight:600;font-size:14px;line-height:1.4;padding:13px 16px;border-radius:14px;
     max-width:90vw;text-align:center;opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;z-index:9}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
+  /* Žvaigždučių stiklainis */
+  .statusbar{display:flex;align-items:center;justify-content:center;gap:12px;margin:2px 0 4px}
+  .statusbar .progress{margin:0}
+  .jar{border:none;cursor:pointer;font:inherit;font-weight:900;color:var(--ctrl);background:#fff;
+    border-radius:999px;padding:6px 13px 6px 11px;display:flex;align-items:center;gap:5px;font-size:15px;
+    box-shadow:0 3px 0 rgba(124,92,191,.18);transition:transform .12s ease}
+  .jar:active{transform:translateY(2px)}
+  .jar .jic{font-size:18px}
+  .jar.bump{animation:jarbump .55s cubic-bezier(.2,1.6,.4,1)}
+  @keyframes jarbump{0%{transform:scale(1)}40%{transform:scale(1.24)}100%{transform:scale(1)}}
+  .flystar{position:fixed;left:0;top:0;pointer-events:none;font-size:26px;z-index:8;will-change:transform,opacity}
+
+  /* Raidžių vedžiojimas pirštu */
+  .tracebox{position:relative;width:min(74vw,300px);aspect-ratio:1;background:#fff;border-radius:28px;
+    box-shadow:var(--shadow);touch-action:none}
+  .tracebox canvas{position:absolute;inset:0;width:100%;height:100%;border-radius:28px;touch-action:none}
+  .lrow{display:flex;align-items:center;justify-content:center;gap:16px}
+  .lrow .small{width:54px;height:54px;border-radius:50%;border:none;cursor:pointer;color:#fff;background:var(--ctrl);
+    font-size:22px;box-shadow:0 4px 0 rgba(92,66,150,.45);transition:transform .1s ease}
+  .lrow .small:active{transform:translateY(3px)}
+  .lrow .small[hidden]{display:none}
+  .lrow .go{width:64px;height:64px;font-size:28px;background:#16A085;box-shadow:0 5px 0 rgba(15,120,100,.5);animation:gopulse 1s ease-in-out infinite}
+  @keyframes gopulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+  .luni.cheer{animation:cheerjump .7s ease}
+  @keyframes cheerjump{0%,100%{transform:translateY(0) scale(1)}30%{transform:translateY(-26px) scale(1.08)}
+    55%{transform:translateY(0) scale(1)}78%{transform:translateY(-11px)}}
+
   @media (prefers-reduced-motion: reduce){
     .inner{transition:none}.spark{animation:none}.a0,.a1,.a2,.a3,.pop .emoji{animation:none}
+    .jar.bump,.luni.cheer,.lrow .go{animation:none}
   }
 </style>
 </head>
@@ -175,7 +204,10 @@
     <button class="icon-btn" id="micBtn" title="Įrašyti balsą (tėvams)">🎙️</button>
   </div>
 
-  <div class="progress" id="progress">1 / 1</div>
+  <div class="statusbar">
+    <div class="progress" id="progress">1 / 1</div>
+    <button class="jar" id="starjar" title="Surinktos žvaigždės"><span class="jic">🫙</span><span id="starCount">0</span></button>
+  </div>
 
   <div class="stage">
     <button class="card" id="card" aria-label="Kortelė. Palieskite, kad pamatytumėte paveikslėlį">
@@ -219,10 +251,25 @@
 
     <div class="letters" id="letters" hidden>
       <div class="lcount" id="lCount"></div>
-      <button class="luni" id="lUni" aria-label="Klausyk">🦄</button>
+      <button class="luni" id="lUni" aria-label="Klausyk">🦄<span class="acc" id="lAcc"></span></button>
       <div class="lhint">paspausk 🦄 ir išgirsi raidę</div>
       <div class="lopts" id="lOpts"></div>
       <div class="lmsg" id="lMsg"></div>
+    </div>
+
+    <div class="letters" id="trace" hidden>
+      <div class="lcount" id="tCount"></div>
+      <button class="luni" id="tUni" aria-label="Klausyk">🦄<span class="acc" id="tAcc"></span></button>
+      <div class="lhint" id="tHint">apvesk raidę pirštu ✏️</div>
+      <div class="tracebox" id="traceBox">
+        <canvas id="traceCanvas" width="300" height="300"></canvas>
+      </div>
+      <div class="lrow">
+        <button class="small" id="tClear" aria-label="Iš naujo">↺</button>
+        <button class="small" id="tSay" aria-label="Pakartoti garsą" style="background:#E8505B;box-shadow:0 4px 0 rgba(180,40,60,.45)">🔊</button>
+        <button class="small go" id="tNext" aria-label="Kita raidė" hidden>▶</button>
+      </div>
+      <div class="lmsg" id="tMsg"></div>
     </div>
   </div>
 
@@ -243,7 +290,8 @@
   const PALETTE=["#E8505B","#2D6A9F","#1B9E77","#8E44AD","#E67E22","#0E8E9A","#D6336C","#C2410C"];
 
   const LEVELS = [
-    { name:"Raidės", letterGame:true },
+    { name:"Raidės", letterGame:"pick" },
+    { name:"Vedžiok", letterGame:"trace" },
     { name:"1 pamoka", words:[
       {syll:["MA","MA"], word:"MAMA", emoji:"👩"},
       {syll:["TĖ","TĖ"], word:"TĖTĖ", emoji:"👨"},
@@ -377,6 +425,46 @@
   const LETTERS=["A","E","Ė","I","O","U","M","S","L","T","K","P","N","V","R","B","D","G","Ž","Š"];
   const FIRST_WORD = LEVELS.findIndex(L=>L.words && L.words.some(w=>w.syll));
   let lOrder=[], lIdx=0, lSolved=0, lTarget=null;
+  let stars=0;
+
+  // ---- Išsaugojimas (veikia atidarius failą naršyklėje per http/https) ----
+  const SKEY="skaitymas_progress_v1";
+  function load(){
+    try{ const r=localStorage.getItem(SKEY); if(r){ const o=JSON.parse(r);
+      if(typeof o.stars==="number") stars=o.stars;
+      if(o.weights && typeof o.weights==="object") weights=o.weights; } }catch(e){}
+  }
+  let saveT;
+  function save(){ clearTimeout(saveT); saveT=setTimeout(()=>{ try{ localStorage.setItem(SKEY, JSON.stringify({stars,weights})); }catch(e){} }, 150); }
+
+  // ---- Žvaigždės atlygis ----
+  function awardStar(srcEl){
+    const before=stageIndex(stars);
+    stars++; const sc=$("starCount"); if(sc) sc.textContent=stars; save();
+    const after=stageIndex(stars);
+    if(typeof updateCompanion==="function") updateCompanion();
+    if(after>before){ const st=STAGES[after]; toast("🦄 paaugo — "+st.name+"! "+st.acc); }
+    const jar=$("starjar"); if(jar){ jar.classList.remove("bump"); void jar.offsetWidth; jar.classList.add("bump"); }
+    if(!jar || !srcEl || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const s=srcEl.getBoundingClientRect(), j=jar.getBoundingClientRect();
+    const sx=s.left+s.width/2, sy=s.top+s.height/2, jx=j.left+j.width/2, jy=j.top+j.height/2;
+    const star=document.createElement("div"); star.className="flystar"; star.textContent="⭐";
+    star.style.transform="translate("+(sx-13)+"px,"+(sy-13)+"px)";
+    document.body.appendChild(star);
+    star.animate([
+      {transform:"translate("+(sx-13)+"px,"+(sy-13)+"px) scale(1.4)",opacity:1},
+      {transform:"translate("+((sx+jx)/2-13)+"px,"+((sy+jy)/2-13-44)+"px) scale(1.1)",opacity:1,offset:.6},
+      {transform:"translate("+(jx-13)+"px,"+(jy-13)+"px) scale(.3)",opacity:.2}
+    ],{duration:760,easing:"cubic-bezier(.4,0,.2,1)"});
+    setTimeout(()=>star.remove(),770);
+  }
+
+  // ---- Kartojimo svoris atnaujinamas iš bet kurio režimo ----
+  function bumpWeight(word, known){
+    const ws=LEVELS[lvl].words; if(!ws) return; const i=ws.indexOf(word); if(i<0) return;
+    const key=lvl+":"+i, wt=getW(i);
+    weights[key] = known ? Math.max(wt*0.4,0.2) : Math.min(wt+2,6); save();
+  }
 
   // lygių mygtukai
   const levelsBox=$("levels");
@@ -385,8 +473,9 @@
     b.className="lvl"; b.textContent=L.name; b.setAttribute("aria-pressed", i===0);
     b.onclick=()=>{
       lvl=i; paintLevels();
-      if(LEVELS[lvl].letterGame){ setMode("letters"); return; }
-      if(mode==="letters") mode="cards";
+      const lg=LEVELS[lvl].letterGame;
+      if(lg){ setMode(lg==="trace"?"trace":"letters"); return; }
+      if(mode==="letters"||mode==="trace") mode="cards";
       setLevel();
       if(mode==="build") startBuild(); else if(mode==="pick") startPick(); else if(mode!=="rec") render();
     };
@@ -494,6 +583,8 @@
   function mark(known){
     const key=lvl+":"+order[idx], wt=getW(order[idx]);
     weights[key] = known ? Math.max(wt*0.4,0.2) : Math.min(wt+2,6);
+    save();
+    if(known) awardStar($("card"));
     weightedNext();
   }
   $("known").onclick=()=>mark(true);
@@ -536,6 +627,7 @@
       btn.classList.add("used"); bPlaced++;
       if(bPlaced===bTarget.syll.length){
         sparkle($("bPic")); sayWord(bTarget,true); bSolved++;
+        bumpWeight(bTarget,true); awardStar($("bPic"));
         $("bMsg").textContent="Šaunuolytė! 🎉"; $("progress").textContent="Sudėk žodį · "+bSolved+" ⭐";
         setTimeout(()=>{ bIdx++; newBuild(); }, 1300);
       }
@@ -571,10 +663,11 @@
   function choosePick(w,btn){
     if(w===pTarget){
       btn.classList.add("right"); sparkle(btn); sayWord(pTarget,true); pSolved++;
+      bumpWeight(pTarget,true); awardStar(btn);
       $("pMsg").textContent="Šaunuolytė! 🎉"; $("progress").textContent="Rask paveikslėlį · "+pSolved+" ⭐";
       [...$("pOpts").children].forEach(b=>b.disabled=true);
       setTimeout(()=>{ pIdx++; newPick(); }, 1200);
-    } else { btn.classList.add("wrong"); btn.disabled=true; $("pMsg").textContent="Bandyk dar 🙂"; }
+    } else { btn.classList.add("wrong"); btn.disabled=true; bumpWeight(pTarget,false); $("pMsg").textContent="Bandyk dar 🙂"; }
   }
 
   function setMode(m){
@@ -585,38 +678,152 @@
     $("pick").hidden=(m!=="pick");
     $("rec").hidden=(m!=="rec");
     $("letters").hidden=(m!=="letters");
+    $("trace").hidden=(m!=="trace");
     document.querySelector(".nav").style.display=cards?"flex":"none";
     $("mastery").hidden=!cards;
     $("buildBtn").setAttribute("aria-pressed",m==="build");
     $("pickBtn").setAttribute("aria-pressed",m==="pick");
     $("micBtn").setAttribute("aria-pressed",m==="rec");
-    if(m==="build") startBuild(); else if(m==="pick") startPick(); else if(m==="rec") openRec(); else if(m==="letters") startLetters(); else render();
+    if(m==="build") startBuild(); else if(m==="pick") startPick(); else if(m==="rec") openRec(); else if(m==="letters") startLetters(); else if(m==="trace") startTrace(); else render();
   }
   $("buildBtn").onclick=()=>setMode(mode==="build"?"cards":"build");
   $("pickBtn").onclick=()=>setMode(mode==="pick"?"cards":"pick");
   $("micBtn").onclick=()=>setMode(mode==="rec"?"cards":"rec");
 
-  // ---- Raidės: klausyk ir rink raidę ----
-  function startLetters(){ lOrder=LETTERS.map((_,i)=>i); shuffleArr(lOrder); lIdx=0; lSolved=0; newLetterRound(); }
+  // ---- Auganti kompanionė 🦄 ----
+  const STAGES=[
+    {min:0,  name:"mažylė",         acc:""},
+    {min:8,  name:"su kaspinu",     acc:"🎀"},
+    {min:20, name:"su karūna",      acc:"👑"},
+    {min:40, name:"su vaivorykšte", acc:"🌈"},
+    {min:70, name:"žvaigždėtoji",   acc:"✨"},
+    {min:110,name:"burtininkė",     acc:"🪄"},
+  ];
+  function stageIndex(s){ let k=0; for(let i=0;i<STAGES.length;i++){ if(s>=STAGES[i].min) k=i; } return k; }
+  function updateCompanion(){ const a=STAGES[stageIndex(stars)].acc; const e1=$("lAcc"), e2=$("tAcc"); if(e1)e1.textContent=a; if(e2)e2.textContent=a; }
+
+  function sayLetter(L){ sayWord({word:L, syll:[L]}, true, true); }
+
+  // ---- Raidės: klausyk ir rink iš keturių ----
+  function startLetters(){ updateCompanion(); lOrder=LETTERS.map((_,i)=>i); shuffleArr(lOrder); lIdx=0; lSolved=0; newLetterRound(); }
   function newLetterRound(){
     lTarget=LETTERS[lOrder[lIdx%lOrder.length]];
     const pool=LETTERS.filter(x=>x!==lTarget); shuffleArr(pool);
     const opts=shuffleArr([lTarget, pool[0], pool[1], pool[2]]);
     const box=$("lOpts"); box.innerHTML="";
     opts.forEach(L=>{ const b=document.createElement("button"); b.className="lopt"; b.type="button"; b.textContent=L; b.onclick=()=>chooseLetter(L,b); box.appendChild(b); });
-    $("lMsg").textContent=""; $("lCount").textContent="Raidės · "+lSolved+" ⭐";
+    $("lMsg").textContent=""; $("lCount").textContent="Raidės · "+lSolved+" ⭐"; $("progress").textContent="Raidės";
     sayLetter(lTarget);
   }
-  function sayLetter(L){ sayWord({word:L, syll:[L]}, true, true); }
   function chooseLetter(L,btn){
     if(L===lTarget){
       btn.classList.add("right"); sparkle($("lUni")); lSolved++;
       $("lMsg").textContent="Šaunuolytė! 🎉"; $("lCount").textContent="Raidės · "+lSolved+" ⭐";
       [...$("lOpts").children].forEach(b=>b.disabled=true);
+      awardStar(btn);
       setTimeout(()=>{ lIdx++; newLetterRound(); }, 1200);
     } else { btn.classList.add("wrong"); btn.disabled=true; $("lMsg").textContent="Bandyk dar 🙂"; }
   }
   $("lUni").onclick=()=>sayLetter(lTarget);
+
+  // ---- Vedžiok: apvesk raidę pirštu (pilnai, su kryptimi) ----
+  const tcv=$("traceCanvas"), tctx=tcv.getContext("2d");
+  const TG=30, TC=10, TS=300, DONE=0.8, TFONT="900 230px -apple-system,'Segoe UI',Roboto,system-ui,sans-serif";
+  let ghost=null, need=new Set(), got=new Set(), tNeed=0, tDone=false, tDraw=false, lastP=null;
+  let startPt=null, guidePts=[], guideRAF=0, showStart=false;
+
+  function buildGhost(L){
+    const g=document.createElement("canvas"); g.width=TS; g.height=TS;
+    const gx=g.getContext("2d");
+    gx.font=TFONT; gx.textAlign="center"; gx.textBaseline="middle";
+    gx.fillStyle="#ECE5FB"; gx.fillText(L, TS/2, TS/2);
+    ghost=g;
+    const m=document.createElement("canvas"); m.width=TS; m.height=TS;
+    const c2=m.getContext("2d");
+    c2.font=TFONT; c2.textAlign="center"; c2.textBaseline="middle";
+    c2.fillStyle="#000"; c2.fillText(L, TS/2, TS/2);
+    const d=c2.getImageData(0,0,TS,TS).data;
+    need=new Set(); const ink=[];
+    for(let r=0;r<TG;r++) for(let c=0;c<TG;c++){
+      const px=(c*TC+TC/2)|0, py=(r*TC+TC/2)|0;
+      if(d[(py*TS+px)*4+3]>60){ const cx=c*TC+TC/2, cy=r*TC+TC/2; need.add(r*TG+c); ink.push([cx,cy]); }
+    }
+    tNeed=need.size||1;
+    startPt=null; for(const p of ink){ if(!startPt || p[1]<startPt[1] || (p[1]===startPt[1]&&p[0]<startPt[0])) startPt=p; }
+    guidePts=ink.slice().sort((a,b)=> a[1]-b[1] || a[0]-b[0]);
+  }
+  function renderTrace(){
+    tctx.clearRect(0,0,TS,TS);
+    if(ghost) tctx.drawImage(ghost,0,0);
+    tctx.fillStyle="#7C5CBF";
+    got.forEach(i=>{ const c=i%TG, r=(i/TG|0); tctx.beginPath(); tctx.arc(c*TC+TC/2, r*TC+TC/2, 8, 0, 7); tctx.fill(); });
+  }
+  function drawDot(x,y,r,fill,stroke){ tctx.beginPath(); tctx.arc(x,y,r,0,7); tctx.fillStyle=fill; tctx.fill(); if(stroke){ tctx.lineWidth=3; tctx.strokeStyle=stroke; tctx.stroke(); } }
+  function drawStartDot(){
+    if(!startPt) return; const x=startPt[0], y=startPt[1];
+    drawDot(x,y,11,"#16A085","#fff");
+    tctx.strokeStyle="#16A085"; tctx.lineWidth=4; tctx.lineCap="round";
+    tctx.beginPath(); tctx.moveTo(x-7,y+19); tctx.lineTo(x,y+27); tctx.lineTo(x+7,y+19); tctx.stroke();
+  }
+  function drawGuideDot(p){ tctx.save(); tctx.shadowColor="#F4B400"; tctx.shadowBlur=14; drawDot(p[0],p[1],9,"#F4B400","#fff"); tctx.restore(); }
+  function paint(guidePos){ renderTrace(); if(showStart) drawStartDot(); if(guidePos) drawGuideDot(guidePos); }
+
+  function runGuide(){
+    showStart=true; cancelAnimationFrame(guideRAF);
+    if(matchMedia("(prefers-reduced-motion: reduce)").matches || !guidePts.length){ paint(null); return; }
+    const t0=performance.now(), dur=1500, total=dur*2;
+    function frame(now){
+      if(!showStart) return;
+      const e=now-t0;
+      if(e>=total){ paint(null); return; }
+      const p=(e%dur)/dur, i=Math.min(guidePts.length-1,(p*guidePts.length)|0);
+      paint(guidePts[i]);
+      guideRAF=requestAnimationFrame(frame);
+    }
+    guideRAF=requestAnimationFrame(frame);
+  }
+
+  function tpos(e){ const r=tcv.getBoundingClientRect(); return [ (e.clientX-r.left)/r.width*TS, (e.clientY-r.top)/r.height*TS ]; }
+  function tmark(x,y){
+    const c=Math.max(0,Math.min(TG-1,x/TC|0)), r=Math.max(0,Math.min(TG-1,y/TC|0));
+    for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++){
+      const rr=r+dr, cc=c+dc; if(rr<0||cc<0||rr>=TG||cc>=TG) continue;
+      const i=rr*TG+cc; if(need.has(i)) got.add(i);
+    }
+  }
+  function tstroke(x,y){
+    if(lastP){ const px=lastP[0], py=lastP[1], steps=Math.max(1, Math.hypot(x-px,y-py)/5|0);
+      for(let s=1;s<=steps;s++) tmark(px+(x-px)*s/steps, py+(y-py)*s/steps); }
+    tmark(x,y); lastP=[x,y]; paint(null);
+    if(!tDone && got.size/tNeed>=DONE) completeTrace();
+  }
+  function completeTrace(){
+    tDone=true; tDraw=false; showStart=false; cancelAnimationFrame(guideRAF);
+    got=new Set(need); renderTrace();                  // pilnai nuspalvinta raidė – gražus rezultatas
+    const uni=$("tUni"); uni.classList.remove("cheer"); void uni.offsetWidth; uni.classList.add("cheer");
+    sparkle(uni); sparkle(tcv); lSolved++;
+    $("tMsg").textContent="Puiku! Pasidžiauk 🎉  paspausk ▶";
+    $("tCount").textContent="Vedžiok · "+lSolved+" ⭐";
+    sayLetter(lTarget); awardStar(tcv);
+    $("tNext").hidden=false;
+  }
+  function newTrace(){
+    tDone=false; tDraw=false; lastP=null; got=new Set(); $("tNext").hidden=true;
+    lTarget=LETTERS[lOrder[lIdx%lOrder.length]];
+    buildGhost(lTarget);
+    $("tMsg").textContent=""; $("tCount").textContent="Vedžiok · "+lSolved+" ⭐"; $("progress").textContent="Vedžiok";
+    runGuide(); sayLetter(lTarget);
+  }
+  function startTrace(){ updateCompanion(); lOrder=LETTERS.map((_,i)=>i); shuffleArr(lOrder); lIdx=0; lSolved=0; newTrace(); }
+
+  tcv.addEventListener("pointerdown",e=>{ if(tDone) return; showStart=false; cancelAnimationFrame(guideRAF); tDraw=true; lastP=null; try{tcv.setPointerCapture(e.pointerId)}catch(_){ } const p=tpos(e); tstroke(p[0],p[1]); e.preventDefault(); });
+  tcv.addEventListener("pointermove",e=>{ if(!tDraw||tDone) return; const p=tpos(e); tstroke(p[0],p[1]); e.preventDefault(); });
+  tcv.addEventListener("pointerup",()=>{ tDraw=false; lastP=null; });
+  tcv.addEventListener("pointercancel",()=>{ tDraw=false; lastP=null; });
+  $("tClear").onclick=()=>{ got=new Set(); tDone=false; lastP=null; $("tNext").hidden=true; $("tMsg").textContent=""; runGuide(); };
+  $("tSay").onclick=()=>sayLetter(lTarget);
+  $("tUni").onclick=()=>sayLetter(lTarget);
+  $("tNext").onclick=()=>{ lIdx++; newTrace(); };
 
   // ---- Įrašytas balsas (telefone) ----
   function recKey(w){ return w.sentence ? w.words.join(" ") : (w.word||w.syll.join("")); }
@@ -702,7 +909,19 @@
     }
   })();
 
-  if(LEVELS[lvl].letterGame) setMode("letters"); else setLevel();
+  // ---- Paleidimas: užkrauname išsaugotą progresą ----
+  load();
+  $("starCount").textContent=stars;
+  updateCompanion();
+  $("starjar").onclick=()=>{
+    const j=$("starjar"); j.classList.remove("bump"); void j.offsetWidth; j.classList.add("bump");
+    const nxt=STAGES[stageIndex(stars)+1];
+    toast(nxt ? ("Surinkai "+stars+" ⭐ · iki „🦄 "+nxt.name+"“ liko "+(nxt.min-stars)+" ⭐")
+              : ("Surinkai "+stars+" ⭐ — viskas atrakinta! 🎉"));
+  };
+
+  const lg0=LEVELS[lvl].letterGame;
+  if(lg0) setMode(lg0==="trace"?"trace":"letters"); else setLevel();
 </script>
 </body>
 </html>
