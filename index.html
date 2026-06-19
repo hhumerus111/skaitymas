@@ -147,7 +147,8 @@
   .lopt.right{background:#D7F5E3;color:#16A085;box-shadow:0 5px 0 rgba(22,160,133,.4)}
   .lopt.wrong{background:#FCE2E2;color:#E8505B;animation:shake .4s}
 
-  .bigpic{font-size:clamp(80px,26vw,150px);line-height:1}
+  .bigpic{font-size:clamp(80px,26vw,150px);line-height:1;border:none;background:none;cursor:pointer;padding:0;transition:transform .1s ease}
+  .bigpic:active{transform:scale(.94)}
   .bigletter{font-size:clamp(64px,20vw,112px);font-weight:900;color:var(--ctrl);filter:none}
   .findrow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
   .findtile{border:none;cursor:pointer;background:#fff;border-radius:14px;padding:10px 14px;font-weight:900;
@@ -283,6 +284,7 @@
       <button class="luni" id="lUni" aria-label="Klausyk">🦄<span class="acc" id="lAcc"></span></button>
       <div class="lhint">paspausk 🦄 ir išgirsi raidę</div>
       <div class="lopts" id="lOpts"></div>
+      <div class="lrow"><button class="small go" id="lNext" aria-label="Toliau" hidden>▶</button></div>
       <div class="lmsg" id="lMsg"></div>
     </div>
 
@@ -304,8 +306,12 @@
     <div class="letters" id="snd" hidden>
       <div class="lcount" id="sCount"></div>
       <div class="lhint">kuria raide prasideda?</div>
-      <div class="emoji bigpic" id="sPic"></div>
+      <button class="emoji bigpic" id="sPic" aria-label="Pakartoti"></button>
       <div class="lopts" id="sOpts"></div>
+      <div class="lrow">
+        <button class="small" id="sSay" aria-label="Pakartoti" style="background:#E8505B;box-shadow:0 4px 0 rgba(180,40,60,.45)">🔊</button>
+        <button class="small go" id="sNext" aria-label="Toliau" hidden>▶</button>
+      </div>
       <div class="lmsg" id="sMsg"></div>
     </div>
 
@@ -314,6 +320,10 @@
       <div class="lhint">rask paveikslėlį, kuris prasideda šia raide</div>
       <button class="luni bigletter" id="qLetter" aria-label="Klausyk"></button>
       <div class="popts" id="qOpts"></div>
+      <div class="lrow">
+        <button class="small" id="qSay" aria-label="Pakartoti" style="background:#E8505B;box-shadow:0 4px 0 rgba(180,40,60,.45)">🔊</button>
+        <button class="small go" id="qNext" aria-label="Toliau" hidden>▶</button>
+      </div>
       <div class="lmsg" id="qMsg"></div>
     </div>
 
@@ -322,6 +332,10 @@
       <div class="lhint">bakstelėk šią raidę žodyje</div>
       <button class="luni bigletter" id="fLetter" aria-label="Klausyk"></button>
       <div class="findrow" id="fWord"></div>
+      <div class="lrow">
+        <button class="small" id="fSay" aria-label="Pakartoti" style="background:#E8505B;box-shadow:0 4px 0 rgba(180,40,60,.45)">🔊</button>
+        <button class="small go" id="fNext" aria-label="Toliau" hidden>▶</button>
+      </div>
       <div class="lmsg" id="fMsg"></div>
     </div>
   </div>
@@ -720,12 +734,12 @@
   }
   function choosePick(w,btn){
     if(w===pTarget){
-      btn.classList.add("right"); sparkle(btn); sayWord(pTarget,true); pSolved++;
+      btn.classList.add("right"); sparkle(btn); cheer(); pSolved++;
       bumpWeight(pTarget,true); awardStar(btn);
       $("pMsg").textContent="Šaunuolytė! 🎉"; $("progress").textContent="Rask paveikslėlį · "+pSolved+" ⭐";
       [...$("pOpts").children].forEach(b=>b.disabled=true);
       setTimeout(()=>{ pIdx++; newPick(); }, 1200);
-    } else { btn.classList.add("wrong"); btn.disabled=true; bumpWeight(pTarget,false); $("pMsg").textContent="Bandyk dar 🙂"; }
+    } else { btn.classList.add("wrong"); btn.disabled=true; bumpWeight(pTarget,false); nudge(); $("pMsg").textContent="Bandyk dar 🙂"; }
   }
 
   function setMode(m){
@@ -776,19 +790,19 @@
     const opts=shuffleArr([lTarget, pool[0], pool[1], pool[2]]);
     const box=$("lOpts"); box.innerHTML="";
     opts.forEach(L=>{ const b=document.createElement("button"); b.className="lopt"; b.type="button"; b.textContent=L; b.onclick=()=>chooseLetter(L,b); box.appendChild(b); });
-    $("lMsg").textContent=""; $("lCount").textContent="Raidės · "+lSolved+" ⭐"; $("progress").textContent="Raidės";
+    $("lMsg").textContent=""; $("lCount").textContent="Raidės · "+lSolved+" ⭐"; $("progress").textContent="Raidės"; $("lNext").hidden=true;
     sayLetter(lTarget);
   }
   function chooseLetter(L,btn){
     if(L===lTarget){
       btn.classList.add("right"); sparkle($("lUni")); lSolved++;
-      $("lMsg").textContent="Šaunuolytė! 🎉"; $("lCount").textContent="Raidės · "+lSolved+" ⭐";
+      $("lMsg").textContent="Šaunuolytė! 🎉  paspausk ▶"; $("lCount").textContent="Raidės · "+lSolved+" ⭐";
       [...$("lOpts").children].forEach(b=>b.disabled=true);
-      awardStar(btn);
-      setTimeout(()=>{ lIdx++; newLetterRound(); }, 1200);
-    } else { btn.classList.add("wrong"); btn.disabled=true; $("lMsg").textContent="Bandyk dar 🙂"; }
+      cheer(); awardStar(btn); $("lNext").hidden=false;
+    } else { btn.classList.add("wrong"); btn.disabled=true; nudge(); $("lMsg").textContent="Bandyk dar 🙂"; }
   }
   $("lUni").onclick=()=>sayLetter(lTarget);
+  $("lNext").onclick=()=>{ lIdx++; newLetterRound(); };
 
   // ---- Vedžiok: apvesk raidę pirštu (pilnai, su kryptimi) ----
   const tcv=$("traceCanvas"), tctx=tcv.getContext("2d");
@@ -868,7 +882,7 @@
     sparkle(uni); sparkle(tcv); lSolved++;
     $("tMsg").textContent="Puiku! Pasidžiauk 🎉  paspausk ▶";
     $("tCount").textContent="Vedžiok · "+lSolved+" ⭐";
-    sayLetter(lTarget); awardStar(tcv);
+    cheer(); awardStar(tcv);
     $("tNext").hidden=false;
   }
   function newTrace(){
@@ -915,18 +929,21 @@
     const opts=shuffleArr([sTarget.first, others[0], others[1], others[2]]);
     const box=$("sOpts"); box.innerHTML="";
     opts.forEach(L=>{ const b=document.createElement("button"); b.className="lopt"; b.type="button"; b.textContent=L; b.onclick=()=>chooseSnd(L,b); box.appendChild(b); });
-    $("sMsg").textContent=""; $("sCount").textContent="Garsas · "+sSolved+" ⭐"; $("progress").textContent="Garsas";
+    $("sMsg").textContent=""; $("sCount").textContent="Garsas · "+sSolved+" ⭐"; $("progress").textContent="Garsas"; $("sNext").hidden=true;
     sayWord(asW(sTarget), true);
   }
   function chooseSnd(L,btn){
     if(L===sTarget.first){
       btn.classList.add("right"); sparkle($("sPic")); sSolved++;
       [...$("sOpts").children].forEach(b=>b.disabled=true);
-      sayLetter(sTarget.first);
-      $("sMsg").textContent="Šaunuolytė! 🎉"; $("sCount").textContent="Garsas · "+sSolved+" ⭐";
-      awardStar(btn); setTimeout(()=>{ sIdx++; newSnd(); }, 1200);
-    } else { btn.classList.add("wrong"); btn.disabled=true; $("sMsg").textContent="Bandyk dar 🙂"; }
+      cheer();
+      $("sMsg").textContent="Šaunuolytė! 🎉  paspausk ▶"; $("sCount").textContent="Garsas · "+sSolved+" ⭐";
+      awardStar(btn); $("sNext").hidden=false;
+    } else { btn.classList.add("wrong"); btn.disabled=true; nudge(); $("sMsg").textContent="Bandyk dar 🙂"; }
   }
+  $("sSay").onclick=()=>{ if(sTarget) sayWord(asW(sTarget), true); };
+  $("sPic").onclick=()=>{ if(sTarget) sayWord(asW(sTarget), true); };
+  $("sNext").onclick=()=>{ sIdx++; newSnd(); };
 
   // ---- Raidė -> paveikslėlis ----
   let qOrder=[], qIdx=0, qSolved=0, qTarget=null, qLetterVal=null, qByFirst={};
@@ -944,19 +961,21 @@
     $("qLetter").textContent=qLetterVal;
     const box=$("qOpts"); box.innerHTML="";
     opts.forEach(o=>{ const b=document.createElement("button"); b.className="popt"; b.type="button"; b.textContent=o.emoji; b.onclick=()=>chooseL2P(o,b); box.appendChild(b); });
-    $("qMsg").textContent=""; $("qCount").textContent="Raidė · "+qSolved+" ⭐"; $("progress").textContent="Raidė";
+    $("qMsg").textContent=""; $("qCount").textContent="Raidė · "+qSolved+" ⭐"; $("progress").textContent="Raidė"; $("qNext").hidden=true;
     sayLetter(qLetterVal);
   }
   function chooseL2P(o,btn){
     if(o===qTarget){
       btn.classList.add("right"); sparkle(btn); qSolved++;
       [...$("qOpts").children].forEach(b=>b.disabled=true);
-      sayWord(asW(qTarget),true);
-      $("qMsg").textContent="Šaunuolytė! 🎉"; $("qCount").textContent="Raidė · "+qSolved+" ⭐";
-      awardStar(btn); setTimeout(()=>{ qIdx++; newL2P(); }, 1200);
-    } else { btn.classList.add("wrong"); btn.disabled=true; $("qMsg").textContent="Bandyk dar 🙂"; }
+      cheer();
+      $("qMsg").textContent="Šaunuolytė! 🎉  paspausk ▶"; $("qCount").textContent="Raidė · "+qSolved+" ⭐";
+      awardStar(btn); $("qNext").hidden=false;
+    } else { btn.classList.add("wrong"); btn.disabled=true; nudge(); $("qMsg").textContent="Bandyk dar 🙂"; }
   }
   $("qLetter").onclick=()=>sayLetter(qLetterVal);
+  $("qSay").onclick=()=>{ if(qLetterVal) sayLetter(qLetterVal); };
+  $("qNext").onclick=()=>{ qIdx++; newL2P(); };
 
   // ---- Surask raidę žodyje ----
   let fPool=[], fOrder=[], fIdx=0, fSolved=0, fWordObj=null, fTargetLetter=null;
@@ -973,19 +992,21 @@
     const row=$("fWord"); row.innerHTML="";
     chars.forEach((ch,i)=>{ const b=document.createElement("button"); b.className="findtile"; b.type="button"; b.textContent=ch;
       b.style.color=PALETTE[i%PALETTE.length]; b.onclick=()=>chooseFind(ch,b); row.appendChild(b); });
-    $("fMsg").textContent=""; $("fCount").textContent="Rask raidę · "+fSolved+" ⭐"; $("progress").textContent="Rask raidę";
+    $("fMsg").textContent=""; $("fCount").textContent="Rask raidę · "+fSolved+" ⭐"; $("progress").textContent="Rask raidę"; $("fNext").hidden=true;
     sayLetter(fTargetLetter);
   }
   function chooseFind(ch,btn){
     if(ch===fTargetLetter){
       btn.classList.add("right"); sparkle(btn); fSolved++;
       [...$("fWord").children].forEach(b=>b.disabled=true);
-      sayWord(asW(fWordObj),true);
-      $("fMsg").textContent="Šaunuolytė! 🎉"; $("fCount").textContent="Rask raidę · "+fSolved+" ⭐";
-      awardStar(btn); setTimeout(()=>{ fIdx++; newFind(); }, 1200);
-    } else { btn.classList.remove("wrong"); void btn.offsetWidth; btn.classList.add("wrong"); $("fMsg").textContent="Bandyk dar 🙂"; }
+      cheer();
+      $("fMsg").textContent="Šaunuolytė! 🎉  paspausk ▶"; $("fCount").textContent="Rask raidę · "+fSolved+" ⭐";
+      awardStar(btn); $("fNext").hidden=false;
+    } else { btn.classList.remove("wrong"); void btn.offsetWidth; btn.classList.add("wrong"); nudge(); $("fMsg").textContent="Bandyk dar 🙂"; }
   }
   $("fLetter").onclick=()=>sayLetter(fTargetLetter);
+  $("fSay").onclick=()=>{ if(fTargetLetter) sayLetter(fTargetLetter); };
+  $("fNext").onclick=()=>{ fIdx++; newFind(); };
 
   // ---- Įrašytas balsas (telefone) ----
   function recKey(w){ return w.sentence ? w.words.join(" ") : (w.word||w.syll.join("")); }
@@ -1006,6 +1027,8 @@
 
   let recList=[], recIdx=0, mediaRec=null, chunks=[];
   function buildRecList(){ const seen=new Set(); recList=[];
+    PRAISE.forEach(p=>{ if(!seen.has(p)){ seen.add(p); recList.push({key:p,label:"🎉 Pagyrimas: "+p}); } });
+    if(!seen.has(ENCOURAGE)){ seen.add(ENCOURAGE); recList.push({key:ENCOURAGE,label:"🙂 Padrąsinimas: "+ENCOURAGE}); }
     LETTERS.forEach(L=>{ if(!seen.has(L)){ seen.add(L); recList.push({key:L,label:L}); } });
     LEVELS.forEach(L=> L.words && L.words.forEach(w=>{ const k=recKey(w); if(!seen.has(k)){ seen.add(k); recList.push({key:k,label:k}); } }));
   }
@@ -1053,6 +1076,22 @@
     if(!audioOn && !force) return;
     if(await playRec(recKey(w))) return;
     speak(w, wordOnly);
+  }
+
+  // ---- Pagyrimai / padrąsinimai (tėvų įrašomi) ----
+  const PRAISE=["VALIO","ATSPĖJAI","ŠAUNUOLYTĖ","VAU","PUIKU"];
+  const ENCOURAGE="PABANDYK DAR KARTELĮ";
+  function ttsSay(t){ if(!("speechSynthesis" in window)) return; const v=ltVoice(); if(!v) return; speechSynthesis.cancel(); utter(t.toLowerCase(),.95,v); }
+  async function cheer(){
+    if(!audioOn) return;
+    const have=PRAISE.filter(k=>recSet.has(k));
+    if(have.length && await playRec(have[(Math.random()*have.length)|0])) return;
+    ttsSay(PRAISE[(Math.random()*PRAISE.length)|0]);
+  }
+  async function nudge(){
+    if(!audioOn) return;
+    if(recSet.has(ENCOURAGE) && await playRec(ENCOURAGE)) return;
+    ttsSay("pabandyk dar");
   }
 
   buildRecList(); loadRecKeys();
