@@ -30,6 +30,7 @@
     font-size:clamp(13px,3.4vw,16px);padding:9px 14px;color:var(--ctrl);background:#fff;white-space:nowrap;
     box-shadow:0 3px 0 rgba(124,92,191,.18);transition:transform .12s ease}
   .lvl[aria-pressed="true"]{background:var(--ctrl);color:#fff}
+  .lvl.locked{opacity:.45}
   .lvl:active{transform:translateY(2px)}
   .icon-btn{border:none;border-radius:50%;width:46px;height:46px;flex:none;cursor:pointer;
     background:#fff;color:var(--ctrl);font-size:20px;display:grid;place-items:center;
@@ -157,6 +158,23 @@
   .findtile:disabled{cursor:default}
   .findtile.right{background:#D7F5E3;color:#16A085;box-shadow:0 5px 0 rgba(22,160,133,.4)}
   .findtile.wrong{background:#FCE2E2;color:#E8505B;animation:shake .4s}
+
+  .prizes{position:fixed;inset:0;z-index:10;background:rgba(52,48,61,.5);display:flex;align-items:center;justify-content:center;padding:18px}
+  .prizes[hidden]{display:none}
+  .prizes-card{background:#fff;border-radius:26px;box-shadow:var(--shadow);width:min(92vw,460px);max-height:84dvh;overflow:auto;padding:18px}
+  .prizes-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .prizes-title{font-weight:900;font-size:20px;color:var(--ink)}
+  .prizes-close{border:none;background:#F1ECFA;color:var(--ctrl);width:38px;height:38px;border-radius:50%;font-size:18px;font-weight:900;cursor:pointer}
+  .prizes-comp{display:flex;align-items:center;gap:12px;background:#FBF7FF;border-radius:16px;padding:10px 12px;margin-bottom:12px}
+  .prizes-comp .pcuni{position:relative;font-size:54px;line-height:1}
+  .prizes-comp .pcacc{position:absolute;top:.02em;left:50%;transform:translateX(-50%);font-size:.4em}
+  .prizes-comp .pctext{font-weight:700;color:var(--muted);font-size:14px;line-height:1.35}
+  .prizes-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+  .prize{aspect-ratio:1;border-radius:16px;background:#F5F1FC;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+  .prize.got{background:#EAFBF5;box-shadow:inset 0 0 0 2px #B6ECD8}
+  .prize .pe{font-size:clamp(26px,7vw,34px);line-height:1}
+  .prize:not(.got) .pe{opacity:.5}
+  .prize .pc{font-size:11px;font-weight:800;color:var(--muted)}
 
   .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);
     background:#34303D;color:#fff;font-weight:600;font-size:14px;line-height:1.4;padding:13px 16px;border-radius:14px;
@@ -338,6 +356,22 @@
       </div>
       <div class="lmsg" id="fMsg"></div>
     </div>
+
+    <div class="letters" id="write" hidden>
+      <div class="lcount" id="wCount"></div>
+      <div class="lhint">išgirsk raidę 🔊 ir parašyk ją</div>
+      <div class="tracebox" id="wBox">
+        <canvas id="wGhost" width="300" height="300"></canvas>
+        <canvas id="wCanvas" width="300" height="300"></canvas>
+      </div>
+      <div class="lrow">
+        <button class="small" id="wSay" aria-label="Pakartoti" style="background:#E8505B;box-shadow:0 4px 0 rgba(180,40,60,.45)">🔊</button>
+        <button class="small" id="wClear" aria-label="Iš naujo">↺</button>
+        <button class="small" id="wCheck" aria-label="Tikrinti" style="background:#16A085;box-shadow:0 4px 0 rgba(15,120,100,.5)">✓</button>
+        <button class="small go" id="wNext" aria-label="Toliau" hidden>▶</button>
+      </div>
+      <div class="lmsg" id="wMsg"></div>
+    </div>
   </div>
 
   <div class="nav">
@@ -351,6 +385,17 @@
     <button class="mbtn again" id="again">🔁 Dar kartą</button>
   </div>
 
+  <div class="prizes" id="prizes" hidden>
+    <div class="prizes-card">
+      <div class="prizes-top">
+        <div class="prizes-title">🎁 Mano prizai</div>
+        <button class="prizes-close" id="prizesClose" aria-label="Uždaryti">✕</button>
+      </div>
+      <div class="prizes-comp" id="prizesComp"></div>
+      <div class="prizes-grid" id="prizesGrid"></div>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
 
 <script>
@@ -362,6 +407,7 @@
     { name:"Garsas", game:"snd" },
     { name:"Raidė 🖼️", game:"l2p" },
     { name:"Rask raidę", game:"findl" },
+    { name:"Rašyk ✏️", game:"write" },
     { name:"1 pamoka", words:[
       {syll:["MA","MA"], word:"MAMA", emoji:"👩"},
       {syll:["TĖ","TĖ"], word:"TĖTĖ", emoji:"👨"},
@@ -496,24 +542,27 @@
   const FIRST_WORD = LEVELS.findIndex(L=>L.words && L.words.some(w=>w.syll));
   let lOrder=[], lIdx=0, lSolved=0, lTarget=null;
   let stars=0;
+  let locked=new Set();
 
   // ---- Išsaugojimas (veikia atidarius failą naršyklėje per http/https) ----
   const SKEY="skaitymas_progress_v1";
   function load(){
     try{ const r=localStorage.getItem(SKEY); if(r){ const o=JSON.parse(r);
       if(typeof o.stars==="number") stars=o.stars;
-      if(o.weights && typeof o.weights==="object") weights=o.weights; } }catch(e){}
+      if(o.weights && typeof o.weights==="object") weights=o.weights;
+      if(Array.isArray(o.locked)) locked=new Set(o.locked); } }catch(e){}
   }
   let saveT;
-  function save(){ clearTimeout(saveT); saveT=setTimeout(()=>{ try{ localStorage.setItem(SKEY, JSON.stringify({stars,weights})); }catch(e){} }, 150); }
+  function save(){ clearTimeout(saveT); saveT=setTimeout(()=>{ try{ localStorage.setItem(SKEY, JSON.stringify({stars,weights,locked:[...locked]})); }catch(e){} }, 150); }
 
   // ---- Žvaigždės atlygis ----
   function awardStar(srcEl){
-    const before=stageIndex(stars);
+    const old=stars, before=stageIndex(stars);
     stars++; const sc=$("starCount"); if(sc) sc.textContent=stars; save();
     const after=stageIndex(stars);
     if(typeof updateCompanion==="function") updateCompanion();
     if(after>before){ const st=STAGES[after]; toast("🦄 paaugo — "+st.name+"! "+st.acc); }
+    else if(typeof PRIZES!=="undefined"){ const np=PRIZES.filter(p=>p.at>old && p.at<=stars); if(np.length){ const pr=np[np.length-1]; toast("Naujas prizas! "+pr.e+"  —  bakstelėk 🫙"); } }
     const jar=$("starjar"); if(jar){ jar.classList.remove("bump"); void jar.offsetWidth; jar.classList.add("bump"); }
     if(!jar || !srcEl || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const s=srcEl.getBoundingClientRect(), j=jar.getBoundingClientRect();
@@ -538,22 +587,33 @@
 
   // lygių mygtukai
   const levelsBox=$("levels");
+  const lvlBtns=[];
   LEVELS.forEach((L,i)=>{
     const b=document.createElement("button");
-    b.className="lvl"; b.textContent=L.name; b.setAttribute("aria-pressed", i===0);
+    b.className="lvl"; b.setAttribute("aria-pressed", i===0);
+    let hold=null, held=false;
+    const startH=()=>{ held=false; clearTimeout(hold); hold=setTimeout(()=>{ held=true; toggleLock(L.name); }, 650); };
+    const endH=()=>clearTimeout(hold);
+    b.addEventListener("pointerdown",startH);
+    b.addEventListener("pointerup",endH);
+    b.addEventListener("pointerleave",endH);
+    b.addEventListener("pointercancel",endH);
     b.onclick=()=>{
+      if(held){ held=false; return; }
+      if(locked.has(L.name)){ toast("Užrakinta 🔒 — tėveliai: palaikykit, kad atrakintumėte"); return; }
       lvl=i; paintLevels();
       const g=LEVELS[lvl].game;
       if(g){ setMode(g); return; }
-      // žodžių lygis – per setMode, kad teisingai persijungtų panelės
       if(mode==="build") setMode("build");
       else if(mode==="pick") setMode("pick");
       else if(mode==="rec"){ /* įrašymas nepriklauso nuo lygio – liekam */ }
       else { setLevel(); setMode("cards"); }
     };
-    levelsBox.appendChild(b);
+    lvlBtns.push(b); levelsBox.appendChild(b);
   });
-  function paintLevels(){ [...levelsBox.children].forEach((b,i)=>b.setAttribute("aria-pressed", i===lvl)); }
+  function renderLevelLabels(){ lvlBtns.forEach((b,i)=>{ const nm=LEVELS[i].name; b.textContent=(locked.has(nm)?"🔒 ":"")+nm; b.classList.toggle("locked", locked.has(nm)); }); }
+  function paintLevels(){ lvlBtns.forEach((b,i)=>b.setAttribute("aria-pressed", i===lvl)); renderLevelLabels(); }
+  function toggleLock(name){ if(locked.has(name)) locked.delete(name); else locked.add(name); save(); renderLevelLabels(); toast(locked.has(name)?("Užrakinta 🔒: "+name):("Atrakinta 🔓: "+name)); }
   function shuffleArr(a){ for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];} return a; }
   function setLevel(){ order=LEVELS[lvl].words.map((_,i)=>i); idx=0; render(); }
   function current(){ return LEVELS[lvl].words[order[idx]]; }
@@ -754,6 +814,7 @@
     $("snd").hidden=(m!=="snd");
     $("l2p").hidden=(m!=="l2p");
     $("findl").hidden=(m!=="findl");
+    $("write").hidden=(m!=="write");
     document.querySelector(".nav").style.display=cards?"flex":"none";
     $("mastery").hidden=!cards;
     $("buildBtn").setAttribute("aria-pressed",m==="build");
@@ -762,6 +823,7 @@
     if(m==="build") startBuild(); else if(m==="pick") startPick(); else if(m==="rec") openRec();
     else if(m==="letters") startLetters(); else if(m==="trace") startTrace();
     else if(m==="snd") startSnd(); else if(m==="l2p") startL2P(); else if(m==="findl") startFind();
+    else if(m==="write") startWrite();
     else render();
   }
   $("buildBtn").onclick=()=>setMode(mode==="build"?"cards":"build");
@@ -776,9 +838,35 @@
     {min:40, name:"su vaivorykšte", acc:"🌈"},
     {min:70, name:"žvaigždėtoji",   acc:"✨"},
     {min:110,name:"burtininkė",     acc:"🪄"},
+    {min:160,name:"čempionė",       acc:"🏆"},
+    {min:220,name:"karalienė",      acc:"💎"},
   ];
   function stageIndex(s){ let k=0; for(let i=0;i<STAGES.length;i++){ if(s>=STAGES[i].min) k=i; } return k; }
   function updateCompanion(){ const a=STAGES[stageIndex(stars)].acc; const e1=$("lAcc"), e2=$("tAcc"); if(e1)e1.textContent=a; if(e2)e2.textContent=a; }
+
+  // ---- Prizų kolekcija (motyvacija) ----
+  const PRIZES=[
+    {at:2,e:"🐣"},{at:4,e:"🍭"},{at:6,e:"🐥"},{at:9,e:"🎈"},{at:12,e:"🍓"},{at:16,e:"🐰"},
+    {at:20,e:"🦋"},{at:25,e:"🍦"},{at:30,e:"🐢"},{at:36,e:"🌈"},{at:42,e:"🐬"},{at:50,e:"🧁"},
+    {at:58,e:"🐧"},{at:66,e:"🍩"},{at:75,e:"🦄"},{at:85,e:"🐳"},{at:95,e:"🎀"},{at:108,e:"🐙"},
+    {at:120,e:"🍉"},{at:135,e:"🦉"},{at:150,e:"🐠"},{at:170,e:"🌟"},{at:190,e:"🦩"},{at:210,e:"🎁"},
+    {at:240,e:"👑"},{at:280,e:"🏆"},
+  ];
+  function renderPrizes(){
+    const grid=$("prizesGrid"); if(!grid) return; grid.innerHTML="";
+    PRIZES.forEach(p=>{
+      const d=document.createElement("div");
+      const got=stars>=p.at;
+      d.className="prize"+(got?" got":"");
+      d.innerHTML = got ? ("<span class='pe'>"+p.e+"</span>") : ("<span class='pe'>❓</span><span class='pc'>"+p.at+"⭐</span>");
+      grid.appendChild(d);
+    });
+    const st=STAGES[stageIndex(stars)], nxt=STAGES[stageIndex(stars)+1];
+    $("prizesComp").innerHTML = "<div class='pcuni'>🦄<span class='pcacc'>"+st.acc+"</span></div>"+
+      "<div class='pctext'>"+stars+" ⭐ · "+st.name+(nxt?(" · iki „"+nxt.name+"“ liko "+(nxt.min-stars)+" ⭐"):" · viskas!")+"</div>";
+  }
+  function openPrizes(){ renderPrizes(); $("prizes").hidden=false; }
+  function closePrizes(){ $("prizes").hidden=true; }
 
   function sayLetter(L){ sayWord({word:L, syll:[L]}, true, true); }
 
@@ -808,7 +896,33 @@
   const tcv=$("traceCanvas"), tctx=tcv.getContext("2d");
   const TG=30, TC=10, TS=300, DONE=0.87, BRUSH=22, TFONT="600 235px -apple-system,'Segoe UI',Roboto,system-ui,sans-serif";
   let ghost=null, need=new Set(), needList=[], got=new Set(), tNeed=0, tDone=false, tDraw=false, lastP=null;
-  let startPt=null, guidePts=[], guideRAF=0, showStart=false;
+  let startPt=null, gStrokes=[], gSeq=[], guideRAF=0, showStart=false;
+
+  // Raidžių rašymo brūkšniai (normalizuoti 0..1, kryptimi kaip rašoma)
+  const STROKES={
+    "A":[[[0,1],[0.5,0],[1,1]],[[0.2,0.62],[0.8,0.62]]],
+    "E":[[[0.04,0],[0.04,1]],[[0.04,0],[1,0]],[[0.04,0.5],[0.82,0.5]],[[0.04,1],[1,1]]],
+    "Ė":[[[0.04,0.22],[0.04,1]],[[0.04,0.22],[1,0.22]],[[0.04,0.58],[0.82,0.58]],[[0.04,1],[1,1]],[[0.42,0.05],[0.64,0.05]]],
+    "I":[[[0.5,0],[0.5,1]]],
+    "O":[[[0.5,0.02],[0.13,0.28],[0.04,0.5],[0.13,0.72],[0.5,0.98],[0.87,0.72],[0.96,0.5],[0.87,0.28],[0.5,0.02]]],
+    "U":[[[0.04,0],[0.04,0.62],[0.2,0.9],[0.5,1],[0.8,0.9],[0.96,0.62],[0.96,0]]],
+    "M":[[[0,1],[0.04,0],[0.5,0.62],[0.96,0],[1,1]]],
+    "S":[[[0.9,0.16],[0.62,0.02],[0.28,0.08],[0.18,0.3],[0.5,0.5],[0.82,0.7],[0.72,0.92],[0.38,0.98],[0.1,0.84]]],
+    "L":[[[0.06,0],[0.06,1],[1,1]]],
+    "T":[[[0,0.04],[1,0.04]],[[0.5,0.04],[0.5,1]]],
+    "K":[[[0.06,0],[0.06,1]],[[0.95,0.02],[0.08,0.5]],[[0.32,0.42],[0.98,1]]],
+    "P":[[[0.06,1],[0.06,0],[0.62,0.02],[0.92,0.22],[0.62,0.46],[0.06,0.48]]],
+    "N":[[[0,1],[0.03,0],[0.97,1],[1,0]]],
+    "V":[[[0.02,0],[0.5,1],[0.98,0]]],
+    "R":[[[0.06,1],[0.06,0],[0.62,0.02],[0.92,0.22],[0.62,0.46],[0.06,0.48]],[[0.42,0.48],[1,1]]],
+    "B":[[[0.06,1],[0.06,0],[0.6,0.02],[0.88,0.16],[0.6,0.46],[0.06,0.48]],[[0.06,0.48],[0.66,0.5],[0.94,0.72],[0.6,0.98],[0.06,1]]],
+    "D":[[[0.06,1],[0.06,0],[0.55,0.04],[0.92,0.34],[0.92,0.66],[0.55,0.96],[0.06,1]]],
+    "G":[[[0.92,0.2],[0.62,0.04],[0.32,0.06],[0.12,0.3],[0.07,0.6],[0.26,0.9],[0.6,0.97],[0.92,0.82],[0.92,0.58],[0.6,0.58]]],
+    "Ž":[[[0.1,0.2],[0.94,0.2],[0.1,1],[0.94,1]],[[0.3,0.05],[0.5,0.13],[0.7,0.05]]],
+    "Š":[[[0.9,0.3],[0.62,0.17],[0.3,0.23],[0.2,0.43],[0.5,0.6],[0.82,0.74],[0.72,0.92],[0.4,0.99],[0.12,0.86]],[[0.3,0.06],[0.5,0.14],[0.7,0.06]]]
+  };
+  function mapStroke(st,bb){ return st.map(p=>[bb.x+p[0]*bb.w, bb.y+p[1]*bb.h]); }
+  function densify(st){ const out=[]; for(let i=0;i<st.length-1;i++){ const a=st[i],b=st[i+1],len=Math.hypot(b[0]-a[0],b[1]-a[1]),steps=Math.max(1,(len/6)|0); for(let s=0;s<steps;s++){ const t=s/steps; out.push([a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t]); } } out.push(st[st.length-1]); return out; }
 
   function buildGhost(L){
     const g=document.createElement("canvas"); g.width=TS; g.height=TS;
@@ -827,8 +941,12 @@
       if(d[(py*TS+px)*4+3]>60){ const cx=c*TC+TC/2, cy=r*TC+TC/2, i=r*TG+c; need.add(i); needList.push([i,cx,cy]); ink.push([cx,cy]); }
     }
     tNeed=need.size||1;
-    startPt=null; for(const p of ink){ if(!startPt || p[1]<startPt[1] || (p[1]===startPt[1]&&p[0]<startPt[0])) startPt=p; }
-    guidePts=ink.slice().sort((a,b)=> a[1]-b[1] || a[0]-b[0]);
+    let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
+    for(const p of ink){ if(p[0]<minX)minX=p[0]; if(p[0]>maxX)maxX=p[0]; if(p[1]<minY)minY=p[1]; if(p[1]>maxY)maxY=p[1]; }
+    const bb={x:minX,y:minY,w:Math.max(1,maxX-minX),h:Math.max(1,maxY-minY)};
+    const tpl=STROKES[L];
+    if(tpl){ gStrokes=tpl.map(st=>mapStroke(st,bb)); gSeq=[]; gStrokes.forEach(s=>densify(s).forEach(p=>gSeq.push(p))); startPt=gStrokes[0][0]; }
+    else { const pts=ink.slice().sort((a,b)=> a[1]-b[1] || a[0]-b[0]); gStrokes=[pts]; gSeq=pts; startPt=pts[0]||null; }
   }
   function renderTrace(){
     tctx.clearRect(0,0,TS,TS);
@@ -844,18 +962,29 @@
     tctx.beginPath(); tctx.moveTo(x-7,y+19); tctx.lineTo(x,y+27); tctx.lineTo(x+7,y+19); tctx.stroke();
   }
   function drawGuideDot(p){ tctx.save(); tctx.shadowColor="#F4B400"; tctx.shadowBlur=14; drawDot(p[0],p[1],9,"#F4B400","#fff"); tctx.restore(); }
-  function paint(guidePos){ renderTrace(); if(showStart) drawStartDot(); if(guidePos) drawGuideDot(guidePos); }
+  function arrowHead(a,b,size,color){ const ang=Math.atan2(b[1]-a[1],b[0]-a[0]); tctx.strokeStyle=color; tctx.lineWidth=3.5; tctx.lineCap="round"; tctx.beginPath(); tctx.moveTo(b[0]-Math.cos(ang-0.5)*size,b[1]-Math.sin(ang-0.5)*size); tctx.lineTo(b[0],b[1]); tctx.lineTo(b[0]-Math.cos(ang+0.5)*size,b[1]-Math.sin(ang+0.5)*size); tctx.stroke(); }
+  function drawArrows(){
+    tctx.save();
+    gStrokes.forEach(st=>{
+      tctx.strokeStyle="rgba(124,92,191,.30)"; tctx.lineWidth=4; tctx.lineCap="round"; tctx.lineJoin="round";
+      tctx.beginPath(); tctx.moveTo(st[0][0],st[0][1]); for(let i=1;i<st.length;i++) tctx.lineTo(st[i][0],st[i][1]); tctx.stroke();
+      for(let i=0;i<st.length-1;i++){ const a=st[i],b=st[i+1]; if(Math.hypot(b[0]-a[0],b[1]-a[1])<20) continue; const m=[a[0]+(b[0]-a[0])*0.82, a[1]+(b[1]-a[1])*0.82]; arrowHead(a,m,8,"rgba(124,92,191,.55)"); }
+      const n=st.length; if(n>=2) arrowHead(st[n-2],st[n-1],11,"#7C5CBF");
+    });
+    tctx.restore();
+  }
+  function paint(guidePos){ renderTrace(); if(showStart){ drawArrows(); drawStartDot(); } if(guidePos) drawGuideDot(guidePos); }
 
   function runGuide(){
     showStart=true; cancelAnimationFrame(guideRAF);
-    if(matchMedia("(prefers-reduced-motion: reduce)").matches || !guidePts.length){ paint(null); return; }
-    const t0=performance.now(), dur=1500, total=dur*2;
+    if(matchMedia("(prefers-reduced-motion: reduce)").matches || !gSeq.length){ paint(null); return; }
+    const t0=performance.now(), dur=1800, total=dur*2;
     function frame(now){
       if(!showStart) return;
       const e=now-t0;
       if(e>=total){ paint(null); return; }
-      const p=(e%dur)/dur, i=Math.min(guidePts.length-1,(p*guidePts.length)|0);
-      paint(guidePts[i]);
+      const p=(e%dur)/dur, i=Math.min(gSeq.length-1,(p*gSeq.length)|0);
+      paint(gSeq[i]);
       guideRAF=requestAnimationFrame(frame);
     }
     guideRAF=requestAnimationFrame(frame);
@@ -1008,6 +1137,68 @@
   $("fSay").onclick=()=>{ if(fTargetLetter) sayLetter(fTargetLetter); };
   $("fNext").onclick=()=>{ fIdx++; newFind(); };
 
+  // ---- Rašyk: išgirsk ir parašyk raidę iš atminties ----
+  const wcv=$("wCanvas"), wctx=wcv.getContext("2d"), wgcv=$("wGhost"), wgctx=wgcv.getContext("2d");
+  const WN=24;
+  let TEMPLATES=null;
+  let wOrder=[], wIdx=0, wSolved=0, wTarget=null, wDraw=false, wLast=null, wInked=false, wDone=false;
+
+  function maskAlpha(L){ const m=document.createElement("canvas"); m.width=TS;m.height=TS; const c=m.getContext("2d"); c.font=TFONT;c.textAlign="center";c.textBaseline="middle";c.fillStyle="#000";c.fillText(L,TS/2,TS/2); return c.getImageData(0,0,TS,TS).data; }
+  function gridFromAlpha(data){
+    let minX=TS,minY=TS,maxX=0,maxY=0,found=false;
+    for(let y=0;y<TS;y++)for(let x=0;x<TS;x++){ if(data[(y*TS+x)*4+3]>60){ found=true; if(x<minX)minX=x; if(x>maxX)maxX=x; if(y<minY)minY=y; if(y>maxY)maxY=y; } }
+    const g=new Uint8Array(WN*WN); if(!found) return g;
+    const w=Math.max(1,maxX-minX), h=Math.max(1,maxY-minY);
+    for(let gy=0;gy<WN;gy++)for(let gx=0;gx<WN;gx++){ const sx=(minX+(gx+0.5)/WN*w)|0, sy=(minY+(gy+0.5)/WN*h)|0; if(data[(sy*TS+sx)*4+3]>60) g[gy*WN+gx]=1; }
+    return g;
+  }
+  function buildTemplates(){ if(TEMPLATES) return; TEMPLATES={}; LETTERS.forEach(L=>{ TEMPLATES[L]=gridFromAlpha(maskAlpha(L)); }); }
+  function classifyWrite(){
+    const g=gridFromAlpha(wctx.getImageData(0,0,TS,TS).data);
+    let gc=0; for(let i=0;i<g.length;i++) gc+=g[i];
+    if(gc<8) return {letter:null,iou:0,target:0};
+    let best=null,bestIoU=0,tIoU=0;
+    for(const L of LETTERS){ const t=TEMPLATES[L]; let inter=0,uni=0; for(let i=0;i<t.length;i++){ const a=t[i],b=g[i]; if(a|b)uni++; if(a&b)inter++; } const iou=uni?inter/uni:0; if(L===wTarget) tIoU=iou; if(iou>bestIoU){bestIoU=iou;best=L;} }
+    return {letter:best,iou:bestIoU,target:tIoU};
+  }
+  function startWrite(){ buildTemplates(); updateCompanion(); wOrder=LETTERS.map((_,i)=>i); shuffleArr(wOrder); wIdx=0; wSolved=0; newWrite(); }
+  function newWrite(){
+    wDone=false; wInked=false; wLast=null;
+    wctx.clearRect(0,0,TS,TS); wgctx.clearRect(0,0,TS,TS);
+    wTarget=LETTERS[wOrder[wIdx%wOrder.length]];
+    $("wNext").hidden=true; $("wMsg").textContent=""; $("wCount").textContent="Rašyk · "+wSolved+" ⭐"; $("progress").textContent="Rašyk";
+    sayLetter(wTarget);
+  }
+  function showHint(){ wgctx.clearRect(0,0,TS,TS); wgctx.font=TFONT; wgctx.textAlign="center"; wgctx.textBaseline="middle"; wgctx.fillStyle="#ECE5FB"; wgctx.fillText(wTarget, TS/2, TS/2); }
+  function wpos(e){ const r=wcv.getBoundingClientRect(); return [(e.clientX-r.left)/r.width*TS,(e.clientY-r.top)/r.height*TS]; }
+  function wStroke(x,y){
+    wctx.strokeStyle="#7C5CBF"; wctx.fillStyle="#7C5CBF"; wctx.lineWidth=16; wctx.lineCap="round"; wctx.lineJoin="round";
+    if(wLast){ wctx.beginPath(); wctx.moveTo(wLast[0],wLast[1]); wctx.lineTo(x,y); wctx.stroke(); }
+    else { wctx.beginPath(); wctx.arc(x,y,8,0,7); wctx.fill(); }
+    wLast=[x,y]; wInked=true;
+  }
+  function checkWrite(){
+    if(wDone) return;
+    if(!wInked){ $("wMsg").textContent="Parašyk raidę ✏️"; return; }
+    const res=classifyWrite();
+    if((res.letter===wTarget && res.iou>=0.34) || res.target>=0.42){
+      wDone=true; wSolved++; sparkle(wcv); cheer();
+      $("wMsg").textContent="Šaunuolytė! 🎉  paspausk ▶"; $("wCount").textContent="Rašyk · "+wSolved+" ⭐";
+      awardStar(wcv); $("wNext").hidden=false;
+    } else {
+      nudge(); $("wMsg").textContent="Beveik! Štai užuomina — apvesk ir bandyk dar";
+      showHint(); wctx.clearRect(0,0,TS,TS); wInked=false; wLast=null;
+    }
+  }
+  wcv.addEventListener("pointerdown",e=>{ if(wDone) return; wDraw=true; wLast=null; try{wcv.setPointerCapture(e.pointerId)}catch(_){ } const p=wpos(e); wStroke(p[0],p[1]); e.preventDefault(); });
+  wcv.addEventListener("pointermove",e=>{ if(!wDraw||wDone) return; const p=wpos(e); wStroke(p[0],p[1]); e.preventDefault(); });
+  wcv.addEventListener("pointerup",()=>{ wDraw=false; wLast=null; });
+  wcv.addEventListener("pointercancel",()=>{ wDraw=false; wLast=null; });
+  $("wSay").onclick=()=>{ if(wTarget) sayLetter(wTarget); };
+  $("wClear").onclick=()=>{ wctx.clearRect(0,0,TS,TS); wgctx.clearRect(0,0,TS,TS); wInked=false; wLast=null; wDone=false; $("wMsg").textContent=""; };
+  $("wCheck").onclick=checkWrite;
+  $("wNext").onclick=()=>{ wIdx++; newWrite(); };
+
   // ---- Įrašytas balsas (telefone) ----
   function recKey(w){ return w.sentence ? w.words.join(" ") : (w.word||w.syll.join("")); }
   let dbP;
@@ -1114,6 +1305,7 @@
   load();
   $("starCount").textContent=stars;
   updateCompanion();
+  renderLevelLabels();
   function resetProgress(){
     stars=0; weights={}; save();
     $("starCount").textContent=stars; updateCompanion();
@@ -1132,10 +1324,10 @@
   jarEl.onclick=()=>{
     if(jarHeld){ jarHeld=false; return; }     // ilgas paspaudimas – ne paprastas tapas
     jarEl.classList.remove("bump"); void jarEl.offsetWidth; jarEl.classList.add("bump");
-    const nxt=STAGES[stageIndex(stars)+1];
-    toast(nxt ? ("Surinkai "+stars+" ⭐ · iki „🦄 "+nxt.name+"“ liko "+(nxt.min-stars)+" ⭐  ·  (palaikyk ilgiau, kad atstatytum)")
-              : ("Surinkai "+stars+" ⭐ — viskas atrakinta! 🎉  ·  (palaikyk ilgiau, kad atstatytum)"));
+    openPrizes();
   };
+  $("prizesClose").onclick=closePrizes;
+  $("prizes").addEventListener("click",e=>{ if(e.target===$("prizes")) closePrizes(); });
 
   const lg0=LEVELS[lvl].game;
   if(lg0) setMode(lg0); else setLevel();
