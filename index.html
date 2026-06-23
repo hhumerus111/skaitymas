@@ -137,6 +137,9 @@
   .rec-row .mic.on{background:#C2410C}
   .rec-row button:active{transform:translateY(3px)}
   .rec-del{border:none;background:#fff;color:#E8505B;font-weight:800;border-radius:14px;padding:10px 16px;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.08)}
+  .rec-backup{display:flex;gap:10px;margin-top:4px}
+  .rec-bk{border:none;background:#F1ECFA;color:var(--ctrl);font-weight:800;border-radius:14px;padding:10px 14px;cursor:pointer;box-shadow:0 3px 0 rgba(124,92,191,.18);font-size:14px}
+  .rec-bk:active{transform:translateY(2px)}
 
   /* Raidės (klausyk ir rink raidę) */
   .letters{display:flex;flex-direction:column;align-items:center;gap:16px;width:min(88vw,440px)}
@@ -307,6 +310,11 @@
       <div class="rec-status" id="recStatus"></div>
       <button class="small" id="recPlay" style="background:#16A085;box-shadow:0 4px 0 rgba(15,120,100,.45)" aria-label="Klausyti">▶</button>
       <button class="rec-del" id="recDel">🗑 Ištrinti šio žodžio įrašą</button>
+      <div class="rec-backup">
+        <button class="rec-bk" id="recExport">⬇️ Atsarginė kopija</button>
+        <button class="rec-bk" id="recImport">⬆️ Atkurti</button>
+      </div>
+      <input type="file" id="recFile" accept="application/json,.json" hidden>
     </div>
 
     <div class="letters" id="letters" hidden>
@@ -1254,6 +1262,40 @@
   async function putRec(k,b){ const d=await db(); return new Promise((res,rej)=>{ const t=d.transaction("rec","readwrite"); t.objectStore("rec").put(b,k); t.oncomplete=res; t.onerror=()=>rej(t.error); }); }
   async function getRec(k){ const d=await db(); return new Promise((res,rej)=>{ const t=d.transaction("rec","readonly"); const q=t.objectStore("rec").get(k); q.onsuccess=()=>res(q.result||null); q.onerror=()=>rej(q.error); }); }
   async function delRec(k){ const d=await db(); return new Promise((res,rej)=>{ const t=d.transaction("rec","readwrite"); t.objectStore("rec").delete(k); t.oncomplete=res; t.onerror=()=>rej(t.error); }); }
+
+  // ---- Atsarginė kopija (eksportas / importas) ----
+  function blobToB64(blob){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(String(r.result).split(",")[1]||""); r.onerror=()=>rej(r.error); r.readAsDataURL(blob); }); }
+  function b64ToBlob(b64,type){ const bin=atob(b64||""), len=bin.length, arr=new Uint8Array(len); for(let i=0;i<len;i++) arr[i]=bin.charCodeAt(i); return new Blob([arr],{type:type||"audio/webm"}); }
+  async function allRecs(){
+    const d=await db();
+    return new Promise((res,rej)=>{ const t=d.transaction("rec","readonly"), store=t.objectStore("rec"), out=[], cur=store.openCursor();
+      cur.onsuccess=e=>{ const c=e.target.result; if(c){ out.push([c.key,c.value]); c.continue(); } else res(out); };
+      cur.onerror=()=>rej(cur.error); });
+  }
+  async function exportData(){
+    try{
+      toast("Ruošiama atsarginė kopija…");
+      const entries=await allRecs(); const recs=[];
+      for(const [k,blob] of entries){ recs.push({key:k, type:(blob&&blob.type)||"audio/webm", data:await blobToB64(blob)}); }
+      const payload={ app:"skaitymas", v:1, when:new Date().toISOString(), progress:{stars,weights,locked:[...locked]}, recordings:recs };
+      const blob=new Blob([JSON.stringify(payload)],{type:"application/json"});
+      const url=URL.createObjectURL(blob), a=document.createElement("a");
+      a.href=url; a.download="skaitymas-atsargine-kopija.json"; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),1500);
+      toast("Atsarginė kopija paruošta ("+recs.length+" įrašų) ✅");
+    }catch(e){ toast("Nepavyko sukurti kopijos."); }
+  }
+  async function importData(file){
+    try{
+      const o=JSON.parse(await file.text());
+      if(!o || o.app!=="skaitymas" || !Array.isArray(o.recordings)){ toast("Netinkamas failas."); return; }
+      let n=0;
+      for(const r of o.recordings){ try{ await putRec(r.key, b64ToBlob(r.data, r.type)); recSet.add(r.key); n++; }catch(e){} }
+      if(o.progress){ if(typeof o.progress.stars==="number") stars=o.progress.stars; if(o.progress.weights && typeof o.progress.weights==="object") weights=o.progress.weights; if(Array.isArray(o.progress.locked)) locked=new Set(o.progress.locked); save(); $("starCount").textContent=stars; updateCompanion(); renderLevelLabels(); }
+      renderRec();
+      toast("Atkurta: "+n+" įrašų ✅");
+    }catch(e){ toast("Nepavyko nuskaityti failo."); }
+  }
   let recSet=new Set();
   async function loadRecKeys(){ try{ const d=await db(); const t=d.transaction("rec","readonly"); const q=t.objectStore("rec").getAllKeys(); q.onsuccess=()=>{ recSet=new Set(q.result); if(mode==="rec") renderRec(); }; }catch(e){} }
 
@@ -1302,6 +1344,9 @@
   $("recNext").onclick=()=>recGo(1);
   $("recPlay").onclick=async ()=>{ const ok=await playRec(recList[recIdx].key); if(!ok) $("recStatus").textContent="Dar neįrašyta."; };
   $("recDel").onclick=async ()=>{ const k=recList[recIdx].key; try{ await delRec(k); recSet.delete(k); }catch(e){} renderRec(); };
+  $("recExport").onclick=exportData;
+  $("recImport").onclick=()=>$("recFile").click();
+  $("recFile").onchange=e=>{ const f=e.target.files&&e.target.files[0]; if(f) importData(f); e.target.value=""; };
 
   // pagrindinis atkūrimas: jei yra įrašas – grok jį, kitaip robotas
   async function sayWord(w, wordOnly, force){
