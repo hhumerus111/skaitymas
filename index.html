@@ -4,13 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFE8C2">
-<link rel="manifest" href="manifest.webmanifest">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Skaitymas">
-<link rel="apple-touch-icon" href="icon-192.png">
-<link rel="icon" href="icon-192.png">
 <title>Skaitymas</title>
 <style>
   :root{
@@ -37,7 +30,6 @@
     font-size:clamp(13px,3.4vw,16px);padding:9px 14px;color:var(--ctrl);background:#fff;white-space:nowrap;
     box-shadow:0 3px 0 rgba(124,92,191,.18);transition:transform .12s ease}
   .lvl[aria-pressed="true"]{background:var(--ctrl);color:#fff}
-  .lvl.locked{opacity:.45}
   .lvl:active{transform:translateY(2px)}
   .icon-btn{border:none;border-radius:50%;width:46px;height:46px;flex:none;cursor:pointer;
     background:#fff;color:var(--ctrl);font-size:20px;display:grid;place-items:center;
@@ -47,7 +39,7 @@
   .progress{text-align:center;font-weight:800;color:var(--muted);letter-spacing:.04em;font-size:15px;margin:2px 0 4px}
 
   .stage{flex:1;display:grid;place-items:center;padding:6px 0}
-  .card{width:min(88vw,440px);aspect-ratio:5/6;max-height:52dvh;perspective:1400px;
+  .card{width:min(88vw,440px);aspect-ratio:5/6;max-height:56dvh;perspective:1400px;
     cursor:pointer;border:none;background:none;padding:0;border-radius:34px}
   .card:focus-visible{outline:4px solid var(--ring);outline-offset:6px}
   .inner{position:relative;width:100%;height:100%;transition:transform .6s cubic-bezier(.2,.8,.2,1);transform-style:preserve-3d}
@@ -78,17 +70,17 @@
   .spark{position:fixed;pointer-events:none;font-size:30px;z-index:5;animation:fly .9s ease-out forwards}
   @keyframes fly{0%{opacity:0;transform:translate(0,0) scale(.4)}20%{opacity:1}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1.3) rotate(var(--r))}}
 
-  .nav{display:flex;align-items:center;justify-content:center;gap:16px;padding:6px 0 8px}
+  .nav{display:flex;align-items:center;justify-content:center;gap:18px;padding:8px 0 12px}
   .nav button{border:none;cursor:pointer;font:inherit;color:#fff;background:var(--ctrl);box-shadow:0 5px 0 rgba(92,66,150,.45);transition:transform .1s ease}
-  .nav .arrow{width:54px;height:54px;border-radius:50%;font-size:23px}
-  .nav .say{width:66px;height:66px;border-radius:50%;font-size:29px;background:#E8505B;box-shadow:0 5px 0 rgba(180,40,60,.45)}
+  .nav .arrow{width:60px;height:60px;border-radius:50%;font-size:25px}
+  .nav .say{width:74px;height:74px;border-radius:50%;font-size:32px;background:#E8505B;box-shadow:0 5px 0 rgba(180,40,60,.45)}
   .nav button:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(0,0,0,.25)}
   .nav button:focus-visible{outline:4px solid var(--ring);outline-offset:4px}
 
-  #mastery{display:flex;gap:12px;width:min(88vw,440px);margin:0 auto 10px}
+  #mastery{display:flex;gap:12px;width:min(88vw,440px);margin:0 auto 14px}
   #mastery[hidden]{display:none}
-  .mbtn{flex:1;border:none;cursor:pointer;font:inherit;font-weight:800;font-size:15px;
-    padding:12px 10px;border-radius:16px;color:#fff;transition:transform .1s ease}
+  .mbtn{flex:1;border:none;cursor:pointer;font:inherit;font-weight:800;font-size:16px;
+    padding:14px 10px;border-radius:16px;color:#fff;transition:transform .1s ease}
   .mbtn:active{transform:translateY(2px)}
   .mbtn.know{background:#16A085;box-shadow:0 4px 0 rgba(15,120,100,.5)}
   .mbtn.again{background:#E67E22;box-shadow:0 4px 0 rgba(180,100,20,.5)}
@@ -137,19 +129,14 @@
   .rec-row .mic.on{background:#C2410C}
   .rec-row button:active{transform:translateY(3px)}
   .rec-del{border:none;background:#fff;color:#E8505B;font-weight:800;border-radius:14px;padding:10px 16px;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.08)}
-  .rec-backup{display:flex;gap:10px;margin-top:4px}
-  .rec-bk{border:none;background:#F1ECFA;color:var(--ctrl);font-weight:800;border-radius:14px;padding:10px 14px;cursor:pointer;box-shadow:0 3px 0 rgba(124,92,191,.18);font-size:14px}
-  .rec-bk:active{transform:translateY(2px)}
 
   /* Raidės (klausyk ir rink raidę) */
   .letters{display:flex;flex-direction:column;align-items:center;gap:16px;width:min(88vw,440px)}
   .letters[hidden]{display:none}
   .lcount{font-weight:800;color:var(--muted);font-size:14px}
-  .luni{position:relative;border:none;cursor:pointer;background:none;font-size:clamp(96px,30vw,170px);line-height:1;transition:transform .1s ease;filter:drop-shadow(0 10px 14px rgba(0,0,0,.12))}
+  .luni{border:none;cursor:pointer;background:none;font-size:clamp(96px,30vw,170px);line-height:1;transition:transform .1s ease;filter:drop-shadow(0 10px 14px rgba(0,0,0,.12))}
   .luni:active{transform:scale(.93)}
-  .luni .acc{position:absolute;top:.05em;left:50%;transform:translateX(-50%);font-size:.34em;filter:drop-shadow(0 3px 5px rgba(0,0,0,.2));pointer-events:none}
-  .lhint{font-weight:700;color:var(--muted);font-size:15px;margin-top:-8px;text-align:center}
-  .lmsg{font-weight:800;font-size:18px;min-height:22px;text-align:center;color:var(--ink)}
+  .lhint{font-weight:700;color:var(--muted);font-size:15px;margin-top:-8px}
   .lopts{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%}
   .lopt{border:none;cursor:pointer;background:#fff;border-radius:20px;padding:14px;font-weight:900;
     font-size:clamp(44px,14vw,72px);color:var(--ctrl);box-shadow:0 5px 0 rgba(124,92,191,.2);transition:transform .1s ease, background .2s ease}
@@ -157,94 +144,52 @@
   .lopt:disabled{cursor:default}
   .lopt.right{background:#D7F5E3;color:#16A085;box-shadow:0 5px 0 rgba(22,160,133,.4)}
   .lopt.wrong{background:#FCE2E2;color:#E8505B;animation:shake .4s}
+  .lmsg{font-weight:800;font-size:18px;min-height:22px;text-align:center;color:var(--ink)}
 
-  .bigpic{font-size:clamp(80px,26vw,150px);line-height:1;border:none;background:none;cursor:pointer;padding:0;transition:transform .1s ease}
-  .bigpic:active{transform:scale(.94)}
-  .bigletter{font-size:clamp(64px,20vw,112px);font-weight:900;color:var(--ctrl);filter:none}
-  .findrow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
-  .findtile{border:none;cursor:pointer;background:#fff;border-radius:14px;padding:10px 14px;font-weight:900;
-    font-size:clamp(34px,10vw,56px);color:var(--ctrl);box-shadow:0 5px 0 rgba(124,92,191,.2);transition:transform .1s ease, background .2s ease}
-  .findtile:active{transform:translateY(3px)}
-  .findtile:disabled{cursor:default}
-  .findtile.right{background:#D7F5E3;color:#16A085;box-shadow:0 5px 0 rgba(22,160,133,.4)}
-  .findtile.wrong{background:#FCE2E2;color:#E8505B;animation:shake .4s}
+  /* žvaigždučių stiklainis + vienaragis */
+  .jarbar{display:flex;align-items:center;justify-content:center;gap:10px;position:relative;z-index:1}
+  .jar{display:flex;align-items:center;gap:6px;background:#fff;border-radius:999px;padding:6px 14px;
+    font-weight:900;font-size:16px;color:var(--ink);box-shadow:0 3px 0 rgba(124,92,191,.18)}
+  .jar .uni-stage{font-size:22px}
+  .flystar{position:fixed;z-index:8;font-size:28px;pointer-events:none;transition:transform .8s cubic-bezier(.3,.7,.3,1), opacity .8s ease}
+  .celebrate{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:rgba(255,241,214,.96);
+    opacity:0;pointer-events:none;transition:opacity .3s ease}
+  .celebrate.show{opacity:1;pointer-events:auto}
+  .celebrate .cbox{text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px}
+  .celebrate .cuni{font-size:120px;line-height:1;animation:bouncy 1.2s ease-in-out infinite}
+  .celebrate .ctitle{font-weight:900;font-size:30px;color:var(--ink)}
+  .celebrate .csub{font-weight:700;font-size:17px;color:var(--muted)}
+  .celebrate .cclose{margin-top:8px;border:none;cursor:pointer;background:var(--ctrl);color:#fff;font:inherit;font-weight:800;
+    padding:12px 26px;border-radius:999px;font-size:17px;box-shadow:0 4px 0 rgba(92,66,150,.45)}
+  .crain{position:absolute;top:-40px;font-size:30px;animation:crain linear forwards}
+  @keyframes crain{to{transform:translateY(110vh) rotate(200deg)}}
 
-  .prizes{position:fixed;inset:0;z-index:10;background:rgba(52,48,61,.5);display:flex;align-items:center;justify-content:center;padding:18px}
-  .prizes[hidden]{display:none}
-  .prizes-card{background:#fff;border-radius:26px;box-shadow:var(--shadow);width:min(92vw,460px);max-height:84dvh;overflow:auto;padding:18px}
-  .prizes-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-  .prizes-title{font-weight:900;font-size:20px;color:var(--ink)}
-  .prizes-close{border:none;background:#F1ECFA;color:var(--ctrl);width:38px;height:38px;border-radius:50%;font-size:18px;font-weight:900;cursor:pointer}
-  .prizes-comp{display:flex;align-items:center;gap:12px;background:#FBF7FF;border-radius:16px;padding:10px 12px;margin-bottom:12px}
-  .prizes-comp .pcuni{position:relative;font-size:54px;line-height:1}
-  .prizes-comp .pcacc{position:absolute;top:.02em;left:50%;transform:translateX(-50%);font-size:.4em}
-  .prizes-comp .pctext{font-weight:700;color:var(--muted);font-size:14px;line-height:1.35}
-  .prizes-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
-  .prize{aspect-ratio:1;border-radius:16px;background:#F5F1FC;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
-  .prize.got{background:#EAFBF5;box-shadow:inset 0 0 0 2px #B6ECD8}
-  .prize .pe{font-size:clamp(26px,7vw,34px);line-height:1}
-  .prize:not(.got) .pe{opacity:.5}
-  .prize .pc{font-size:11px;font-weight:800;color:var(--muted)}
+  /* Vienaragio kelionė */
+  .hunt{display:flex;flex-direction:column;align-items:center;gap:10px;width:min(92vw,460px)}
+  .hunt[hidden]{display:none}
+  .hunt-top{display:flex;align-items:center;gap:10px;font-weight:800;color:var(--ink)}
+  .hunt-say{border:none;cursor:pointer;background:#E8505B;color:#fff;border-radius:50%;width:52px;height:52px;font-size:22px;box-shadow:0 4px 0 rgba(180,40,60,.45)}
+  .hunt-field{position:relative;width:100%;height:min(44dvh,380px);background:#fff;border-radius:24px;box-shadow:var(--shadow);overflow:hidden}
+  .hunt-item{position:absolute;font-weight:900;font-size:34px;transform:translate(-50%,-50%);text-shadow:0 2px 0 rgba(0,0,0,.08)}
+  .hunt-item.gone{opacity:.25}
+  .hunt-item.bad{animation:shake .4s;color:#E8505B!important}
+  .hunt-uni{position:absolute;font-size:44px;transform:translate(-50%,-50%);transition:left .18s ease, top .18s ease;filter:drop-shadow(0 6px 8px rgba(0,0,0,.18));z-index:2}
+  .hunt-pad{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(2,58px);gap:8px;justify-content:center}
+  .hunt-pad button{border:none;cursor:pointer;background:var(--ctrl);color:#fff;border-radius:16px;font-size:24px;box-shadow:0 4px 0 rgba(92,66,150,.45);transition:transform .08s ease}
+  .hunt-pad button:active{transform:translateY(3px)}
+  .hunt-pad .hup{grid-column:2;grid-row:1}
+  .hunt-pad .hleft{grid-column:1;grid-row:2}
+  .hunt-pad .hdown{grid-column:2;grid-row:2}
+  .hunt-pad .hright{grid-column:3;grid-row:2}
+  .hunt-msg{font-weight:800;font-size:17px;min-height:20px;color:var(--ink)}
 
   .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);
     background:#34303D;color:#fff;font-weight:600;font-size:14px;line-height:1.4;padding:13px 16px;border-radius:14px;
     max-width:90vw;text-align:center;opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;z-index:9}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-  /* Žvaigždučių stiklainis */
-  .statusbar{display:flex;align-items:center;justify-content:center;gap:12px;margin:2px 0 4px}
-  .statusbar .progress{margin:0}
-  .jar{border:none;cursor:pointer;font:inherit;font-weight:900;color:var(--ctrl);background:#fff;
-    border-radius:999px;padding:6px 13px 6px 11px;display:flex;align-items:center;gap:5px;font-size:15px;
-    box-shadow:0 3px 0 rgba(124,92,191,.18);transition:transform .12s ease}
-  .jar:active{transform:translateY(2px)}
-  .jar .jic{font-size:18px}
-  .jar.bump{animation:jarbump .55s cubic-bezier(.2,1.6,.4,1)}
-  @keyframes jarbump{0%{transform:scale(1)}40%{transform:scale(1.24)}100%{transform:scale(1)}}
-  .flystar{position:fixed;left:0;top:0;pointer-events:none;font-size:26px;z-index:8;will-change:transform,opacity}
-
-  /* Raidžių vedžiojimas pirštu */
-  .tracebox{position:relative;width:min(74vw,300px);aspect-ratio:1;background:#fff;border-radius:28px;
-    box-shadow:var(--shadow);touch-action:none}
-  .tracebox canvas{position:absolute;inset:0;width:100%;height:100%;border-radius:28px;touch-action:none}
-  .lrow{display:flex;align-items:center;justify-content:center;gap:16px}
-  .lrow .small{width:54px;height:54px;border-radius:50%;border:none;cursor:pointer;color:#fff;background:var(--ctrl);
-    font-size:22px;box-shadow:0 4px 0 rgba(92,66,150,.45);transition:transform .1s ease}
-  .lrow .small:active{transform:translateY(3px)}
-  .lrow .small[hidden]{display:none}
-  .lrow .go{width:64px;height:64px;font-size:28px;background:#16A085;box-shadow:0 5px 0 rgba(15,120,100,.5);animation:gopulse 1s ease-in-out infinite}
-  @keyframes gopulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
-  .luni.cheer{animation:cheerjump .7s ease}
-  @keyframes cheerjump{0%,100%{transform:translateY(0) scale(1)}30%{transform:translateY(-26px) scale(1.08)}
-    55%{transform:translateY(0) scale(1)}78%{transform:translateY(-11px)}}
-  .uni-idle{animation:idlebob 3.4s ease-in-out infinite}
-  @keyframes idlebob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-9px) rotate(2deg)}}
-  .drop-in{animation:dropin .36s cubic-bezier(.2,1.5,.4,1) both}
-  @keyframes dropin{0%{opacity:0;transform:translateY(-12px) scale(.7)}100%{opacity:1;transform:none}}
-  .confq{position:fixed;top:0;left:0;width:11px;height:14px;border-radius:3px;pointer-events:none;z-index:8;will-change:transform,opacity}
-
-  /* Žemi ekranai (telefonai) – kad apatiniai mygtukai tilptų */
-  @media (max-height:760px){
-    .card{max-height:46dvh}
-    .top{padding:8px 2px 4px}
-    .nav{padding:4px 0 6px;gap:12px}
-    .nav .arrow{width:48px;height:48px;font-size:21px}
-    .nav .say{width:58px;height:58px;font-size:26px}
-    #mastery{margin-bottom:8px}
-    .mbtn{padding:10px 8px;font-size:14px}
-    .statusbar{margin:0}
-    .tracebox{width:min(64vw,260px)}
-  }
-  @media (max-height:640px){
-    .card{max-height:40dvh}
-    .nav .arrow{width:44px;height:44px;font-size:19px}
-    .nav .say{width:52px;height:52px;font-size:23px}
-    .tracebox{width:min(58vw,230px)}
-  }
-
   @media (prefers-reduced-motion: reduce){
     .inner{transition:none}.spark{animation:none}.a0,.a1,.a2,.a3,.pop .emoji{animation:none}
-    .jar.bump,.luni.cheer,.lrow .go,.uni-idle,.drop-in{animation:none}
   }
 </style>
 </head>
@@ -267,10 +212,8 @@
     <button class="icon-btn" id="micBtn" title="Įrašyti balsą (tėvams)">🎙️</button>
   </div>
 
-  <div class="statusbar">
-    <div class="progress" id="progress">1 / 1</div>
-    <button class="jar" id="starjar" title="Surinktos žvaigždės"><span class="jic">🫙</span><span id="starCount">0</span></button>
-  </div>
+  <div class="progress" id="progress">1 / 1</div>
+  <div class="jarbar"><div class="jar" id="jar"><span class="uni-stage" id="uniStage">🥚</span> 🫙 <span id="starCount">0</span> ⭐</div></div>
 
   <div class="stage">
     <button class="card" id="card" aria-label="Kortelė. Palieskite, kad pamatytumėte paveikslėlį">
@@ -310,87 +253,30 @@
       <div class="rec-status" id="recStatus"></div>
       <button class="small" id="recPlay" style="background:#16A085;box-shadow:0 4px 0 rgba(15,120,100,.45)" aria-label="Klausyti">▶</button>
       <button class="rec-del" id="recDel">🗑 Ištrinti šio žodžio įrašą</button>
-      <div class="rec-backup">
-        <button class="rec-bk" id="recExport">⬇️ Atsarginė kopija</button>
-        <button class="rec-bk" id="recImport">⬆️ Atkurti</button>
-      </div>
-      <input type="file" id="recFile" accept="application/json,.json" hidden>
     </div>
 
     <div class="letters" id="letters" hidden>
       <div class="lcount" id="lCount"></div>
-      <button class="luni uni-idle" id="lUni" aria-label="Klausyk">🦄<span class="acc" id="lAcc"></span></button>
+      <button class="luni" id="lUni" aria-label="Klausyk">🦄</button>
       <div class="lhint">paspausk 🦄 ir išgirsi raidę</div>
       <div class="lopts" id="lOpts"></div>
-      <div class="lrow"><button class="small go" id="lNext" aria-label="Toliau" hidden>▶</button></div>
       <div class="lmsg" id="lMsg"></div>
     </div>
 
-    <div class="letters" id="trace" hidden>
-      <div class="lcount" id="tCount"></div>
-      <button class="luni uni-idle" id="tUni" aria-label="Klausyk">🦄<span class="acc" id="tAcc"></span></button>
-      <div class="lhint" id="tHint">apvesk raidę pirštu ✏️</div>
-      <div class="tracebox" id="traceBox">
-        <canvas id="traceCanvas" width="300" height="300"></canvas>
+    <div class="hunt" id="hunt" hidden>
+      <div class="hunt-top">
+        <span id="huntCount"></span>
+        <button class="hunt-say" id="huntSay" aria-label="Pakartoti">🔊</button>
+        <span>paspausk ir išgirsi, ko ieškoti</span>
       </div>
-      <div class="lrow">
-        <button class="small" id="tClear" aria-label="Iš naujo">↺</button>
-        <button class="small" id="tSay" aria-label="Pakartoti garsą" style="background:#E8505B;box-shadow:0 4px 0 rgba(180,40,60,.45)">🔊</button>
-        <button class="small go" id="tNext" aria-label="Kita raidė" hidden>▶</button>
+      <div class="hunt-field" id="huntField"><div class="hunt-uni" id="huntUni">🦄</div></div>
+      <div class="hunt-pad">
+        <button class="hup" id="hUp" aria-label="Aukštyn">⬆️</button>
+        <button class="hleft" id="hLeft" aria-label="Kairėn">⬅️</button>
+        <button class="hdown" id="hDown" aria-label="Žemyn">⬇️</button>
+        <button class="hright" id="hRight" aria-label="Dešinėn">➡️</button>
       </div>
-      <div class="lmsg" id="tMsg"></div>
-    </div>
-
-    <div class="letters" id="snd" hidden>
-      <div class="lcount" id="sCount"></div>
-      <div class="lhint">kuria raide prasideda?</div>
-      <button class="emoji bigpic" id="sPic" aria-label="Pakartoti"></button>
-      <div class="lopts" id="sOpts"></div>
-      <div class="lrow">
-        <button class="small" id="sSay" aria-label="Pakartoti" style="background:#E8505B;box-shadow:0 4px 0 rgba(180,40,60,.45)">🔊</button>
-        <button class="small go" id="sNext" aria-label="Toliau" hidden>▶</button>
-      </div>
-      <div class="lmsg" id="sMsg"></div>
-    </div>
-
-    <div class="letters" id="l2p" hidden>
-      <div class="lcount" id="qCount"></div>
-      <div class="lhint">rask paveikslėlį, kuris prasideda šia raide</div>
-      <button class="luni bigletter" id="qLetter" aria-label="Klausyk"></button>
-      <div class="popts" id="qOpts"></div>
-      <div class="lrow">
-        <button class="small" id="qSay" aria-label="Pakartoti" style="background:#E8505B;box-shadow:0 4px 0 rgba(180,40,60,.45)">🔊</button>
-        <button class="small go" id="qNext" aria-label="Toliau" hidden>▶</button>
-      </div>
-      <div class="lmsg" id="qMsg"></div>
-    </div>
-
-    <div class="letters" id="findl" hidden>
-      <div class="lcount" id="fCount"></div>
-      <div class="lhint">bakstelėk šią raidę žodyje</div>
-      <button class="luni bigletter" id="fLetter" aria-label="Klausyk"></button>
-      <div class="findrow" id="fWord"></div>
-      <div class="lrow">
-        <button class="small" id="fSay" aria-label="Pakartoti" style="background:#E8505B;box-shadow:0 4px 0 rgba(180,40,60,.45)">🔊</button>
-        <button class="small go" id="fNext" aria-label="Toliau" hidden>▶</button>
-      </div>
-      <div class="lmsg" id="fMsg"></div>
-    </div>
-
-    <div class="letters" id="write" hidden>
-      <div class="lcount" id="wCount"></div>
-      <div class="lhint">išgirsk raidę 🔊 ir parašyk ją</div>
-      <div class="tracebox" id="wBox">
-        <canvas id="wGhost" width="300" height="300"></canvas>
-        <canvas id="wCanvas" width="300" height="300"></canvas>
-      </div>
-      <div class="lrow">
-        <button class="small" id="wSay" aria-label="Pakartoti" style="background:#E8505B;box-shadow:0 4px 0 rgba(180,40,60,.45)">🔊</button>
-        <button class="small" id="wClear" aria-label="Iš naujo">↺</button>
-        <button class="small" id="wCheck" aria-label="Tikrinti" style="background:#16A085;box-shadow:0 4px 0 rgba(15,120,100,.5)">✓</button>
-        <button class="small go" id="wNext" aria-label="Toliau" hidden>▶</button>
-      </div>
-      <div class="lmsg" id="wMsg"></div>
+      <div class="hunt-msg" id="huntMsg"></div>
     </div>
   </div>
 
@@ -405,14 +291,12 @@
     <button class="mbtn again" id="again">🔁 Dar kartą</button>
   </div>
 
-  <div class="prizes" id="prizes" hidden>
-    <div class="prizes-card">
-      <div class="prizes-top">
-        <div class="prizes-title">🎁 Mano prizai</div>
-        <button class="prizes-close" id="prizesClose" aria-label="Uždaryti">✕</button>
-      </div>
-      <div class="prizes-comp" id="prizesComp"></div>
-      <div class="prizes-grid" id="prizesGrid"></div>
+  <div class="celebrate" id="celebrate">
+    <div class="cbox">
+      <div class="cuni" id="cUni">🦄</div>
+      <div class="ctitle">Šaunuolytė! 🎉</div>
+      <div class="csub" id="cSub"></div>
+      <button class="cclose" id="cClose">Toliau ▶</button>
     </div>
   </div>
 
@@ -422,12 +306,23 @@
   const PALETTE=["#E8505B","#2D6A9F","#1B9E77","#8E44AD","#E67E22","#0E8E9A","#D6336C","#C2410C"];
 
   const LEVELS = [
-    { name:"Raidės", game:"letters" },
-    { name:"Vedžiok", game:"trace" },
-    { name:"Garsas", game:"snd" },
-    { name:"Raidė 🖼️", game:"l2p" },
-    { name:"Rask raidę", game:"findl" },
-    { name:"Rašyk ✏️", game:"write" },
+    { name:"Raidės", letterGame:true, set:"letters" },
+    { name:"Skaičiai", letterGame:true, set:"numbers" },
+    { name:"123 kortelės", words:[
+      {syll:["1"], word:"1", say:"vienas", answer:"Vienas", emoji:"1️⃣"},
+      {syll:["2"], word:"2", say:"du", answer:"Du", emoji:"2️⃣"},
+      {syll:["3"], word:"3", say:"trys", answer:"Trys", emoji:"3️⃣"},
+      {syll:["4"], word:"4", say:"keturi", answer:"Keturi", emoji:"4️⃣"},
+      {syll:["5"], word:"5", say:"penki", answer:"Penki", emoji:"5️⃣"},
+      {syll:["6"], word:"6", say:"šeši", answer:"Šeši", emoji:"6️⃣"},
+      {syll:["7"], word:"7", say:"septyni", answer:"Septyni", emoji:"7️⃣"},
+      {syll:["8"], word:"8", say:"aštuoni", answer:"Aštuoni", emoji:"8️⃣"},
+      {syll:["9"], word:"9", say:"devyni", answer:"Devyni", emoji:"9️⃣"},
+      {syll:["10"], word:"10", say:"dešimt", answer:"Dešimt", emoji:"🔟"},
+    ]},
+    { name:"Formos", letterGame:true, set:"shapes" },
+    { name:"Vienaragio kelionė", huntGame:true },
+    { name:"Raidelių gaudyklė", external:"raideliu-gaudykle.html" },
     { name:"1 pamoka", words:[
       {syll:["MA","MA"], word:"MAMA", emoji:"👩"},
       {syll:["TĖ","TĖ"], word:"TĖTĖ", emoji:"👨"},
@@ -561,79 +456,24 @@
   const LETTERS=["A","E","Ė","I","O","U","M","S","L","T","K","P","N","V","R","B","D","G","Ž","Š"];
   const FIRST_WORD = LEVELS.findIndex(L=>L.words && L.words.some(w=>w.syll));
   let lOrder=[], lIdx=0, lSolved=0, lTarget=null;
-  let stars=0;
-  let locked=new Set();
-
-  // ---- Išsaugojimas (veikia atidarius failą naršyklėje per http/https) ----
-  const SKEY="skaitymas_progress_v1";
-  function load(){
-    try{ const r=localStorage.getItem(SKEY); if(r){ const o=JSON.parse(r);
-      if(typeof o.stars==="number") stars=o.stars;
-      if(o.weights && typeof o.weights==="object") weights=o.weights;
-      if(Array.isArray(o.locked)) locked=new Set(o.locked); } }catch(e){}
-  }
-  let saveT;
-  function save(){ clearTimeout(saveT); saveT=setTimeout(()=>{ try{ localStorage.setItem(SKEY, JSON.stringify({stars,weights,locked:[...locked]})); }catch(e){} }, 150); }
-
-  // ---- Žvaigždės atlygis ----
-  function awardStar(srcEl){
-    const old=stars, before=stageIndex(stars);
-    stars++; const sc=$("starCount"); if(sc) sc.textContent=stars; save();
-    const after=stageIndex(stars);
-    if(typeof updateCompanion==="function") updateCompanion();
-    if(after>before){ const st=STAGES[after]; toast("🦄 paaugo — "+st.name+"! "+st.acc); if(typeof confetti==="function") confetti(); }
-    else if(typeof PRIZES!=="undefined"){ const np=PRIZES.filter(p=>p.at>old && p.at<=stars); if(np.length){ const pr=np[np.length-1]; toast("Naujas prizas! "+pr.e+"  —  bakstelėk 🫙"); if(typeof confetti==="function") confetti(); } }
-    const jar=$("starjar"); if(jar){ jar.classList.remove("bump"); void jar.offsetWidth; jar.classList.add("bump"); }
-    if(!jar || !srcEl || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const s=srcEl.getBoundingClientRect(), j=jar.getBoundingClientRect();
-    const sx=s.left+s.width/2, sy=s.top+s.height/2, jx=j.left+j.width/2, jy=j.top+j.height/2;
-    const star=document.createElement("div"); star.className="flystar"; star.textContent="⭐";
-    star.style.transform="translate("+(sx-13)+"px,"+(sy-13)+"px)";
-    document.body.appendChild(star);
-    star.animate([
-      {transform:"translate("+(sx-13)+"px,"+(sy-13)+"px) scale(1.4)",opacity:1},
-      {transform:"translate("+((sx+jx)/2-13)+"px,"+((sy+jy)/2-13-44)+"px) scale(1.1)",opacity:1,offset:.6},
-      {transform:"translate("+(jx-13)+"px,"+(jy-13)+"px) scale(.3)",opacity:.2}
-    ],{duration:760,easing:"cubic-bezier(.4,0,.2,1)"});
-    setTimeout(()=>star.remove(),770);
-  }
-
-  // ---- Kartojimo svoris atnaujinamas iš bet kurio režimo ----
-  function bumpWeight(word, known){
-    const ws=LEVELS[lvl].words; if(!ws) return; const i=ws.indexOf(word); if(i<0) return;
-    const key=lvl+":"+i, wt=getW(i);
-    weights[key] = known ? Math.max(wt*0.4,0.2) : Math.min(wt+2,6); save();
-  }
 
   // lygių mygtukai
   const levelsBox=$("levels");
-  const lvlBtns=[];
   LEVELS.forEach((L,i)=>{
     const b=document.createElement("button");
-    b.className="lvl"; b.setAttribute("aria-pressed", i===0);
-    let hold=null, held=false;
-    const startH=()=>{ held=false; clearTimeout(hold); hold=setTimeout(()=>{ held=true; toggleLock(L.name); }, 650); };
-    const endH=()=>clearTimeout(hold);
-    b.addEventListener("pointerdown",startH);
-    b.addEventListener("pointerup",endH);
-    b.addEventListener("pointerleave",endH);
-    b.addEventListener("pointercancel",endH);
+    b.className="lvl"; b.textContent=L.name; b.setAttribute("aria-pressed", i===0);
     b.onclick=()=>{
-      if(held){ held=false; return; }
-      if(locked.has(L.name)){ toast("Užrakinta 🔒 — tėveliai: palaikykit, kad atrakintumėte"); return; }
+      if(LEVELS[i].external){ window.location.href=LEVELS[i].external; return; }
       lvl=i; paintLevels();
-      const g=LEVELS[lvl].game;
-      if(g){ setMode(g); return; }
-      if(mode==="build") setMode("build");
-      else if(mode==="pick") setMode("pick");
-      else if(mode==="rec"){ /* įrašymas nepriklauso nuo lygio – liekam */ }
-      else { setLevel(); setMode("cards"); }
+      if(LEVELS[lvl].letterGame){ setMode("letters", LEVELS[lvl].set); return; }
+      if(LEVELS[lvl].huntGame){ setMode("hunt"); return; }
+      if(mode==="letters"||mode==="hunt") mode="cards";
+      setLevel();
+      if(mode==="build") startBuild(); else if(mode==="pick") startPick(); else if(mode!=="rec") render();
     };
-    lvlBtns.push(b); levelsBox.appendChild(b);
+    levelsBox.appendChild(b);
   });
-  function renderLevelLabels(){ lvlBtns.forEach((b,i)=>{ const nm=LEVELS[i].name; b.textContent=(locked.has(nm)?"🔒 ":"")+nm; b.classList.toggle("locked", locked.has(nm)); }); }
-  function paintLevels(){ lvlBtns.forEach((b,i)=>b.setAttribute("aria-pressed", i===lvl)); renderLevelLabels(); }
-  function toggleLock(name){ if(locked.has(name)) locked.delete(name); else locked.add(name); save(); renderLevelLabels(); toast(locked.has(name)?("Užrakinta 🔒: "+name):("Atrakinta 🔓: "+name)); }
+  function paintLevels(){ [...levelsBox.children].forEach((b,i)=>b.setAttribute("aria-pressed", i===lvl)); }
   function shuffleArr(a){ for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];} return a; }
   function setLevel(){ order=LEVELS[lvl].words.map((_,i)=>i); idx=0; render(); }
   function current(){ return LEVELS[lvl].words[order[idx]]; }
@@ -661,7 +501,7 @@
     wd.classList.toggle("sentence", !!w.sentence);
     fillWord(wd,w,base);
     const em=$("emoji"); em.textContent=w.emoji; em.className="emoji a"+(base%4);
-    $("answer").textContent = w.sentence ? w.words.join(" ") : capitalize((w.word||w.syll.join("")).toLowerCase());
+    $("answer").textContent = w.sentence ? w.words.join(" ") : (w.answer || capitalize((w.word||w.syll.join("")).toLowerCase()));
     $("hint").textContent="palieskite kortelę 👆";
     $("progress").textContent=(idx+1)+" / "+order.length;
     requestAnimationFrame(fitText);
@@ -716,29 +556,6 @@
     }
   }
 
-  function confetti(){
-    if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const cols=["#E8505B","#7C5CBF","#16A085","#F4B400","#2D6A9F","#D6336C"];
-    const cx=innerWidth/2, top=innerHeight*0.30;
-    for(let i=0;i<22;i++){
-      const p=document.createElement("div"); p.className="confq"; p.style.background=cols[i%cols.length];
-      document.body.appendChild(p);
-      const dx=(Math.random()*2-1)*190, dy=130+Math.random()*230, rot=(Math.random()*720-360);
-      p.animate([
-        {transform:"translate("+cx+"px,"+top+"px) rotate(0deg)",opacity:1},
-        {transform:"translate("+(cx+dx)+"px,"+(top+dy)+"px) rotate("+rot+"deg)",opacity:.95,offset:.85},
-        {transform:"translate("+(cx+dx*1.08)+"px,"+(top+dy+60)+"px) rotate("+rot+"deg)",opacity:0}
-      ],{duration:1100+Math.random()*500,easing:"cubic-bezier(.2,.7,.3,1)"});
-      setTimeout(()=>p.remove(),1750);
-    }
-  }
-  function dropIn(container){
-    if(!container || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const k=container.children;
-    for(let i=0;i<k.length;i++){ const el=k[i]; el.classList.remove("drop-in"); void el.offsetWidth; el.style.animationDelay=(i*55)+"ms"; el.classList.add("drop-in"); }
-  }
-  function celebrateUni(el){ if(!el) return; el.classList.remove("cheer"); void el.offsetWidth; el.classList.add("cheer"); setTimeout(()=>el.classList.remove("cheer"),760); }
-
   // navigacija + tėvų žymėjimas (sunkesni kartojasi dažniau)
   function go(n){ idx=(idx+n+order.length)%order.length; render(); }
   $("next").onclick=()=>go(1);
@@ -758,8 +575,7 @@
   function mark(known){
     const key=lvl+":"+order[idx], wt=getW(order[idx]);
     weights[key] = known ? Math.max(wt*0.4,0.2) : Math.min(wt+2,6);
-    save();
-    if(known) awardStar($("card"));
+    if(known) addStar($("known"));
     weightedNext();
   }
   $("known").onclick=()=>mark(true);
@@ -791,7 +607,6 @@
       b.onclick=()=>placeTile(s,b);
       box.appendChild(b);
     });
-    dropIn(box);
     $("bMsg").textContent="";
     $("progress").textContent="Sudėk žodį · "+bSolved+" ⭐";
   }
@@ -802,8 +617,7 @@
       slot.textContent=s; slot.classList.add("filled"); slot.style.color=PALETTE[bPlaced%PALETTE.length];
       btn.classList.add("used"); bPlaced++;
       if(bPlaced===bTarget.syll.length){
-        sparkle($("bPic")); sayWord(bTarget,true); bSolved++;
-        bumpWeight(bTarget,true); awardStar($("bPic"));
+        sparkle($("bPic")); sayWord(bTarget,true); bSolved++; addStar($("bPic"));
         $("bMsg").textContent="Šaunuolytė! 🎉"; $("progress").textContent="Sudėk žodį · "+bSolved+" ⭐";
         setTimeout(()=>{ bIdx++; newBuild(); }, 1300);
       }
@@ -832,22 +646,20 @@
       const b=document.createElement("button"); b.className="popt"; b.type="button"; b.textContent=w.emoji;
       b.onclick=()=>choosePick(w,b); box.appendChild(b);
     });
-    dropIn(box);
     $("pMsg").textContent="";
     $("progress").textContent="Rask paveikslėlį · "+pSolved+" ⭐";
     requestAnimationFrame(()=>fitEl($("pWord"), $("pick").clientWidth-24));
   }
   function choosePick(w,btn){
     if(w===pTarget){
-      btn.classList.add("right"); sparkle(btn); cheer(); pSolved++;
-      bumpWeight(pTarget,true); awardStar(btn);
+      btn.classList.add("right"); sparkle(btn); sayWord(pTarget,true); pSolved++; addStar(btn);
       $("pMsg").textContent="Šaunuolytė! 🎉"; $("progress").textContent="Rask paveikslėlį · "+pSolved+" ⭐";
       [...$("pOpts").children].forEach(b=>b.disabled=true);
       setTimeout(()=>{ pIdx++; newPick(); }, 1200);
-    } else { btn.classList.add("wrong"); btn.disabled=true; bumpWeight(pTarget,false); nudge(); $("pMsg").textContent="Bandyk dar 🙂"; }
+    } else { btn.classList.add("wrong"); btn.disabled=true; $("pMsg").textContent="Bandyk dar 🙂"; }
   }
 
-  function setMode(m){
+  function setMode(m, set){
     if((m==="build"||m==="pick") && !LEVELS[lvl].words){ lvl=FIRST_WORD; paintLevels(); setLevel(); }
     mode=m; const cards=(m==="cards");
     card.style.display=cards?"":"none";
@@ -855,401 +667,128 @@
     $("pick").hidden=(m!=="pick");
     $("rec").hidden=(m!=="rec");
     $("letters").hidden=(m!=="letters");
-    $("trace").hidden=(m!=="trace");
-    $("snd").hidden=(m!=="snd");
-    $("l2p").hidden=(m!=="l2p");
-    $("findl").hidden=(m!=="findl");
-    $("write").hidden=(m!=="write");
+    $("hunt").hidden=(m!=="hunt");
     document.querySelector(".nav").style.display=cards?"flex":"none";
     $("mastery").hidden=!cards;
     $("buildBtn").setAttribute("aria-pressed",m==="build");
     $("pickBtn").setAttribute("aria-pressed",m==="pick");
     $("micBtn").setAttribute("aria-pressed",m==="rec");
-    if(m==="build") startBuild(); else if(m==="pick") startPick(); else if(m==="rec") openRec();
-    else if(m==="letters") startLetters(); else if(m==="trace") startTrace();
-    else if(m==="snd") startSnd(); else if(m==="l2p") startL2P(); else if(m==="findl") startFind();
-    else if(m==="write") startWrite();
-    else render();
+    if(m==="build") startBuild(); else if(m==="pick") startPick(); else if(m==="rec") openRec(); else if(m==="letters") startLetters(set); else if(m==="hunt") startHunt(); else render();
   }
   $("buildBtn").onclick=()=>setMode(mode==="build"?"cards":"build");
   $("pickBtn").onclick=()=>setMode(mode==="pick"?"cards":"pick");
   $("micBtn").onclick=()=>setMode(mode==="rec"?"cards":"rec");
 
-  // ---- Auganti kompanionė 🦄 ----
-  const STAGES=[
-    {min:0,  name:"mažylė",         acc:""},
-    {min:8,  name:"su kaspinu",     acc:"🎀"},
-    {min:20, name:"su karūna",      acc:"👑"},
-    {min:40, name:"su vaivorykšte", acc:"🌈"},
-    {min:70, name:"žvaigždėtoji",   acc:"✨"},
-    {min:110,name:"burtininkė",     acc:"🪄"},
-    {min:160,name:"čempionė",       acc:"🏆"},
-    {min:220,name:"karalienė",      acc:"💎"},
-  ];
-  function stageIndex(s){ let k=0; for(let i=0;i<STAGES.length;i++){ if(s>=STAGES[i].min) k=i; } return k; }
-  function updateCompanion(){ const a=STAGES[stageIndex(stars)].acc; const e1=$("lAcc"), e2=$("tAcc"); if(e1)e1.textContent=a; if(e2)e2.textContent=a; }
-
-  // ---- Prizų kolekcija (motyvacija) ----
-  const PRIZES=[
-    {at:2,e:"🐣"},{at:4,e:"🍭"},{at:6,e:"🐥"},{at:9,e:"🎈"},{at:12,e:"🍓"},{at:16,e:"🐰"},
-    {at:20,e:"🦋"},{at:25,e:"🍦"},{at:30,e:"🐢"},{at:36,e:"🌈"},{at:42,e:"🐬"},{at:50,e:"🧁"},
-    {at:58,e:"🐧"},{at:66,e:"🍩"},{at:75,e:"🦄"},{at:85,e:"🐳"},{at:95,e:"🎀"},{at:108,e:"🐙"},
-    {at:120,e:"🍉"},{at:135,e:"🦉"},{at:150,e:"🐠"},{at:170,e:"🌟"},{at:190,e:"🦩"},{at:210,e:"🎁"},
-    {at:240,e:"👑"},{at:280,e:"🏆"},
-  ];
-  function renderPrizes(){
-    const grid=$("prizesGrid"); if(!grid) return; grid.innerHTML="";
-    PRIZES.forEach(p=>{
-      const d=document.createElement("div");
-      const got=stars>=p.at;
-      d.className="prize"+(got?" got":"");
-      d.innerHTML = got ? ("<span class='pe'>"+p.e+"</span>") : ("<span class='pe'>❓</span><span class='pc'>"+p.at+"⭐</span>");
-      grid.appendChild(d);
-    });
-    const st=STAGES[stageIndex(stars)], nxt=STAGES[stageIndex(stars)+1];
-    $("prizesComp").innerHTML = "<div class='pcuni'>🦄<span class='pcacc'>"+st.acc+"</span></div>"+
-      "<div class='pctext'>"+stars+" ⭐ · "+st.name+(nxt?(" · iki „"+nxt.name+"“ liko "+(nxt.min-stars)+" ⭐"):" · viskas!")+"</div>";
+  // ---- Vienaragio kelionė ----
+  const HUNT_COLORS=["#E8505B","#2D6A9F","#1B9E77","#8E44AD","#E67E22","#0E8E9A"];
+  let hItems=[], hTarget=null, hX=0, hY=0, hSolved=0, hBusy=false;
+  function huntPool(){
+    const L=PICK_SETS.letters.items, N=PICK_SETS.numbers.items;
+    return L.concat(N);
   }
-  function openPrizes(){ renderPrizes(); $("prizes").hidden=false; }
-  function closePrizes(){ $("prizes").hidden=true; }
+  function startHunt(){ hSolved=0; newHunt(); }
+  function newHunt(){
+    hBusy=false;
+    const field=$("huntField");
+    [...field.querySelectorAll(".hunt-item")].forEach(e=>e.remove());
+    const pool=shuffleArr(huntPool().slice());
+    const chosen=pool.slice(0,6);
+    hTarget=chosen[(Math.random()*chosen.length)|0];
+    hItems=[];
+    const W=field.clientWidth, H=field.clientHeight, pad=44;
+    const spots=[];
+    chosen.forEach((it,i)=>{
+      let x,y,tries=0;
+      do{ x=pad+Math.random()*(W-2*pad); y=pad+Math.random()*(H-2*pad); tries++; }
+      while(tries<60 && spots.some(s=>Math.hypot(s.x-x,s.y-y)<74));
+      spots.push({x,y});
+      const d=document.createElement("div"); d.className="hunt-item"; d.textContent=it.show;
+      d.style.left=x+"px"; d.style.top=y+"px"; d.style.color=HUNT_COLORS[i%HUNT_COLORS.length];
+      field.appendChild(d);
+      hItems.push({it, x, y, el:d});
+    });
+    hX=W/2; hY=H-36; placeUni();
+    $("huntCount").textContent="🦄 "+hSolved+" ⭐";
+    $("huntMsg").textContent="";
+    sayHunt();
+  }
+  function placeUni(){ const u=$("huntUni"); u.style.left=hX+"px"; u.style.top=hY+"px"; }
+  function sayHunt(){ if(hTarget) sayWord({word:hTarget.say, syll:[hTarget.say]}, true, true); }
+  function huntMove(dx,dy){
+    if(hBusy) return;
+    const field=$("huntField"), pad=24;
+    hX=Math.min(field.clientWidth-pad, Math.max(pad, hX+dx));
+    hY=Math.min(field.clientHeight-pad, Math.max(pad, hY+dy));
+    placeUni();
+    const hit=hItems.find(o=>!o.done && Math.hypot(o.x-hX,o.y-hY)<34);
+    if(hit) huntCheck(hit);
+  }
+  function huntCheck(o){
+    if(o.it===hTarget){
+      hBusy=true; o.done=true; o.el.classList.add("gone");
+      sparkle($("huntUni")); addStar($("huntUni")); hSolved++;
+      $("huntMsg").textContent="Šaunuolytė! 🎉";
+      $("huntCount").textContent="🦄 "+hSolved+" ⭐";
+      setTimeout(()=>newHunt(), 1300);
+    } else {
+      o.el.classList.remove("bad"); void o.el.offsetWidth; o.el.classList.add("bad");
+      $("huntMsg").textContent="Čia ne ta – klausyk dar 🔊";
+    }
+  }
+  const STEP=34;
+  $("hUp").onclick=()=>huntMove(0,-STEP);
+  $("hDown").onclick=()=>huntMove(0,STEP);
+  $("hLeft").onclick=()=>huntMove(-STEP,0);
+  $("hRight").onclick=()=>huntMove(STEP,0);
+  $("huntSay").onclick=()=>sayHunt();
 
-  function sayLetter(L){ sayWord({word:L, syll:[L]}, true, true); }
-
-  // ---- Raidės: klausyk ir rink iš keturių ----
-  function startLetters(){ updateCompanion(); lOrder=LETTERS.map((_,i)=>i); shuffleArr(lOrder); lIdx=0; lSolved=0; newLetterRound(); }
+  // ---- Klausyk ir rink: raidės / skaičiai / formos ----
+  const PICK_SETS={
+    letters: { title:"Raidės",  items: LETTERS.map(L=>({show:L, say:L, key:L})) },
+    numbers: { title:"Skaičiai", items: [
+      {show:"1",say:"vienas",key:"1"},{show:"2",say:"du",key:"2"},{show:"3",say:"trys",key:"3"},
+      {show:"4",say:"keturi",key:"4"},{show:"5",say:"penki",key:"5"},{show:"6",say:"šeši",key:"6"},
+      {show:"7",say:"septyni",key:"7"},{show:"8",say:"aštuoni",key:"8"},{show:"9",say:"devyni",key:"9"},
+      {show:"10",say:"dešimt",key:"10"} ] },
+    shapes: { title:"Formos", items: [
+      {show:"⚪",say:"apskritimas",key:"apskritimas"},
+      {show:"🟥",say:"kvadratas",key:"kvadratas"},
+      {show:"🔺",say:"trikampis",key:"trikampis"},
+      {show:"🟨",say:"stačiakampis",key:"stačiakampis"},
+      {show:"⭐",say:"žvaigždė",key:"žvaigždė"},
+      {show:"❤️",say:"širdelė",key:"širdelė"},
+      {show:"🔷",say:"rombas",key:"rombas"},
+      {show:"🥚",say:"ovalas",key:"ovalas"} ] },
+  };
+  let lSet="letters";
+  function startLetters(set){
+    lSet=set||lSet;
+    const items=PICK_SETS[lSet].items;
+    lOrder=items.map((_,i)=>i); shuffleArr(lOrder); lIdx=0; lSolved=0; newLetterRound();
+  }
   function newLetterRound(){
-    lTarget=LETTERS[lOrder[lIdx%lOrder.length]];
-    const pool=LETTERS.filter(x=>x!==lTarget); shuffleArr(pool);
+    const S=PICK_SETS[lSet], items=S.items;
+    lTarget=items[lOrder[lIdx%lOrder.length]];
+    const pool=items.filter(x=>x!==lTarget); shuffleArr(pool);
     const opts=shuffleArr([lTarget, pool[0], pool[1], pool[2]]);
     const box=$("lOpts"); box.innerHTML="";
-    opts.forEach(L=>{ const b=document.createElement("button"); b.className="lopt"; b.type="button"; b.textContent=L; b.onclick=()=>chooseLetter(L,b); box.appendChild(b); });
-    dropIn(box);
-    $("lMsg").textContent=""; $("lCount").textContent="Raidės · "+lSolved+" ⭐"; $("progress").textContent="Raidės"; $("lNext").hidden=true;
+    opts.forEach(it=>{ const b=document.createElement("button"); b.className="lopt"; b.type="button"; b.textContent=it.show; b.onclick=()=>chooseLetter(it,b); box.appendChild(b); });
+    $("lMsg").textContent=""; $("lCount").textContent=S.title+" · "+lSolved+" ⭐";
     sayLetter(lTarget);
   }
-  function chooseLetter(L,btn){
-    if(L===lTarget){
-      btn.classList.add("right"); sparkle($("lUni")); celebrateUni($("lUni")); lSolved++;
-      $("lMsg").textContent="Šaunuolytė! 🎉  paspausk ▶"; $("lCount").textContent="Raidės · "+lSolved+" ⭐";
+  function sayLetter(it){ sayWord({word:it.say, syll:[it.say]}, true, true); }
+  function chooseLetter(it,btn){
+    if(it===lTarget){
+      btn.classList.add("right"); sparkle($("lUni")); lSolved++; addStar(btn);
+      $("lMsg").textContent="Šaunuolytė! 🎉"; $("lCount").textContent=PICK_SETS[lSet].title+" · "+lSolved+" ⭐";
       [...$("lOpts").children].forEach(b=>b.disabled=true);
-      cheer(); awardStar(btn); $("lNext").hidden=false;
-    } else { btn.classList.add("wrong"); btn.disabled=true; nudge(); $("lMsg").textContent="Bandyk dar 🙂"; }
+      setTimeout(()=>{ lIdx++; newLetterRound(); }, 1200);
+    } else { btn.classList.add("wrong"); btn.disabled=true; $("lMsg").textContent="Bandyk dar 🙂"; }
   }
   $("lUni").onclick=()=>sayLetter(lTarget);
-  $("lNext").onclick=()=>{ lIdx++; newLetterRound(); };
-
-  // ---- Vedžiok: apvesk raidę pirštu (pilnai, su kryptimi) ----
-  const tcv=$("traceCanvas"), tctx=tcv.getContext("2d");
-  const TG=30, TC=10, TS=300, DONE=0.87, BRUSH=22, TFONT="600 235px -apple-system,'Segoe UI',Roboto,system-ui,sans-serif";
-  let ghost=null, need=new Set(), needList=[], got=new Set(), tNeed=0, tDone=false, tDraw=false, lastP=null;
-  let startPt=null, gStrokes=[], gSeq=[], guideRAF=0, showStart=false;
-
-  // Raidžių rašymo brūkšniai (normalizuoti 0..1, kryptimi kaip rašoma)
-  const STROKES={
-    "A":[[[0,1],[0.5,0],[1,1]],[[0.2,0.62],[0.8,0.62]]],
-    "E":[[[0.04,0],[0.04,1]],[[0.04,0],[1,0]],[[0.04,0.5],[0.82,0.5]],[[0.04,1],[1,1]]],
-    "Ė":[[[0.04,0.22],[0.04,1]],[[0.04,0.22],[1,0.22]],[[0.04,0.58],[0.82,0.58]],[[0.04,1],[1,1]],[[0.42,0.05],[0.64,0.05]]],
-    "I":[[[0.5,0],[0.5,1]]],
-    "O":[[[0.5,0.02],[0.13,0.28],[0.04,0.5],[0.13,0.72],[0.5,0.98],[0.87,0.72],[0.96,0.5],[0.87,0.28],[0.5,0.02]]],
-    "U":[[[0.04,0],[0.04,0.62],[0.2,0.9],[0.5,1],[0.8,0.9],[0.96,0.62],[0.96,0]]],
-    "M":[[[0,1],[0.04,0],[0.5,0.62],[0.96,0],[1,1]]],
-    "S":[[[0.9,0.16],[0.62,0.02],[0.28,0.08],[0.18,0.3],[0.5,0.5],[0.82,0.7],[0.72,0.92],[0.38,0.98],[0.1,0.84]]],
-    "L":[[[0.06,0],[0.06,1],[1,1]]],
-    "T":[[[0,0.04],[1,0.04]],[[0.5,0.04],[0.5,1]]],
-    "K":[[[0.06,0],[0.06,1]],[[0.95,0.02],[0.08,0.5]],[[0.32,0.42],[0.98,1]]],
-    "P":[[[0.06,1],[0.06,0],[0.62,0.02],[0.92,0.22],[0.62,0.46],[0.06,0.48]]],
-    "N":[[[0,1],[0.03,0],[0.97,1],[1,0]]],
-    "V":[[[0.02,0],[0.5,1],[0.98,0]]],
-    "R":[[[0.06,1],[0.06,0],[0.62,0.02],[0.92,0.22],[0.62,0.46],[0.06,0.48]],[[0.42,0.48],[1,1]]],
-    "B":[[[0.06,1],[0.06,0],[0.6,0.02],[0.88,0.16],[0.6,0.46],[0.06,0.48]],[[0.06,0.48],[0.66,0.5],[0.94,0.72],[0.6,0.98],[0.06,1]]],
-    "D":[[[0.06,1],[0.06,0],[0.55,0.04],[0.92,0.34],[0.92,0.66],[0.55,0.96],[0.06,1]]],
-    "G":[[[0.92,0.2],[0.62,0.04],[0.32,0.06],[0.12,0.3],[0.07,0.6],[0.26,0.9],[0.6,0.97],[0.92,0.82],[0.92,0.58],[0.6,0.58]]],
-    "Ž":[[[0.1,0.2],[0.94,0.2],[0.1,1],[0.94,1]],[[0.3,0.05],[0.5,0.13],[0.7,0.05]]],
-    "Š":[[[0.9,0.3],[0.62,0.17],[0.3,0.23],[0.2,0.43],[0.5,0.6],[0.82,0.74],[0.72,0.92],[0.4,0.99],[0.12,0.86]],[[0.3,0.06],[0.5,0.14],[0.7,0.06]]]
-  };
-  function mapStroke(st,bb){ return st.map(p=>[bb.x+p[0]*bb.w, bb.y+p[1]*bb.h]); }
-  function densify(st){ const out=[]; for(let i=0;i<st.length-1;i++){ const a=st[i],b=st[i+1],len=Math.hypot(b[0]-a[0],b[1]-a[1]),steps=Math.max(1,(len/6)|0); for(let s=0;s<steps;s++){ const t=s/steps; out.push([a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t]); } } out.push(st[st.length-1]); return out; }
-
-  function buildGhost(L){
-    const g=document.createElement("canvas"); g.width=TS; g.height=TS;
-    const gx=g.getContext("2d");
-    gx.font=TFONT; gx.textAlign="center"; gx.textBaseline="middle";
-    gx.fillStyle="#ECE5FB"; gx.fillText(L, TS/2, TS/2);
-    ghost=g;
-    const m=document.createElement("canvas"); m.width=TS; m.height=TS;
-    const c2=m.getContext("2d");
-    c2.font=TFONT; c2.textAlign="center"; c2.textBaseline="middle";
-    c2.fillStyle="#000"; c2.fillText(L, TS/2, TS/2);
-    const d=c2.getImageData(0,0,TS,TS).data;
-    need=new Set(); needList=[]; const ink=[];
-    for(let r=0;r<TG;r++) for(let c=0;c<TG;c++){
-      const px=(c*TC+TC/2)|0, py=(r*TC+TC/2)|0;
-      if(d[(py*TS+px)*4+3]>60){ const cx=c*TC+TC/2, cy=r*TC+TC/2, i=r*TG+c; need.add(i); needList.push([i,cx,cy]); ink.push([cx,cy]); }
-    }
-    tNeed=need.size||1;
-    let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
-    for(const p of ink){ if(p[0]<minX)minX=p[0]; if(p[0]>maxX)maxX=p[0]; if(p[1]<minY)minY=p[1]; if(p[1]>maxY)maxY=p[1]; }
-    const bb={x:minX,y:minY,w:Math.max(1,maxX-minX),h:Math.max(1,maxY-minY)};
-    const tpl=STROKES[L];
-    if(tpl){ gStrokes=tpl.map(st=>mapStroke(st,bb)); gSeq=[]; gStrokes.forEach(s=>densify(s).forEach(p=>gSeq.push(p))); startPt=gStrokes[0][0]; }
-    else { const pts=ink.slice().sort((a,b)=> a[1]-b[1] || a[0]-b[0]); gStrokes=[pts]; gSeq=pts; startPt=pts[0]||null; }
-  }
-  function renderTrace(){
-    tctx.clearRect(0,0,TS,TS);
-    if(ghost) tctx.drawImage(ghost,0,0);
-    tctx.fillStyle="#7C5CBF";
-    got.forEach(i=>{ const c=i%TG, r=(i/TG|0); tctx.beginPath(); tctx.arc(c*TC+TC/2, r*TC+TC/2, 8, 0, 7); tctx.fill(); });
-  }
-  function drawDot(x,y,r,fill,stroke){ tctx.beginPath(); tctx.arc(x,y,r,0,7); tctx.fillStyle=fill; tctx.fill(); if(stroke){ tctx.lineWidth=3; tctx.strokeStyle=stroke; tctx.stroke(); } }
-  function drawStartDot(){
-    if(!startPt) return; const x=startPt[0], y=startPt[1];
-    drawDot(x,y,11,"#16A085","#fff");
-    tctx.strokeStyle="#16A085"; tctx.lineWidth=4; tctx.lineCap="round";
-    tctx.beginPath(); tctx.moveTo(x-7,y+19); tctx.lineTo(x,y+27); tctx.lineTo(x+7,y+19); tctx.stroke();
-  }
-  function drawGuideDot(p){ tctx.save(); tctx.shadowColor="#F4B400"; tctx.shadowBlur=14; drawDot(p[0],p[1],9,"#F4B400","#fff"); tctx.restore(); }
-  function arrowHead(a,b,size,color){ const ang=Math.atan2(b[1]-a[1],b[0]-a[0]); tctx.strokeStyle=color; tctx.lineWidth=3.5; tctx.lineCap="round"; tctx.beginPath(); tctx.moveTo(b[0]-Math.cos(ang-0.5)*size,b[1]-Math.sin(ang-0.5)*size); tctx.lineTo(b[0],b[1]); tctx.lineTo(b[0]-Math.cos(ang+0.5)*size,b[1]-Math.sin(ang+0.5)*size); tctx.stroke(); }
-  function drawArrows(){
-    tctx.save();
-    gStrokes.forEach(st=>{
-      tctx.strokeStyle="rgba(124,92,191,.30)"; tctx.lineWidth=4; tctx.lineCap="round"; tctx.lineJoin="round";
-      tctx.beginPath(); tctx.moveTo(st[0][0],st[0][1]); for(let i=1;i<st.length;i++) tctx.lineTo(st[i][0],st[i][1]); tctx.stroke();
-      for(let i=0;i<st.length-1;i++){ const a=st[i],b=st[i+1]; if(Math.hypot(b[0]-a[0],b[1]-a[1])<20) continue; const m=[a[0]+(b[0]-a[0])*0.82, a[1]+(b[1]-a[1])*0.82]; arrowHead(a,m,8,"rgba(124,92,191,.55)"); }
-      const n=st.length; if(n>=2) arrowHead(st[n-2],st[n-1],11,"#7C5CBF");
-    });
-    tctx.restore();
-  }
-  function paint(guidePos){ renderTrace(); if(showStart){ drawArrows(); drawStartDot(); } if(guidePos) drawGuideDot(guidePos); }
-
-  function runGuide(){
-    showStart=true; cancelAnimationFrame(guideRAF);
-    if(matchMedia("(prefers-reduced-motion: reduce)").matches || !gSeq.length){ paint(null); return; }
-    const t0=performance.now(), dur=1800, total=dur*2;
-    function frame(now){
-      if(!showStart) return;
-      const e=now-t0;
-      if(e>=total){ paint(null); return; }
-      const p=(e%dur)/dur, i=Math.min(gSeq.length-1,(p*gSeq.length)|0);
-      paint(gSeq[i]);
-      guideRAF=requestAnimationFrame(frame);
-    }
-    guideRAF=requestAnimationFrame(frame);
-  }
-
-  function tpos(e){ const r=tcv.getBoundingClientRect(); return [ (e.clientX-r.left)/r.width*TS, (e.clientY-r.top)/r.height*TS ]; }
-  function tmark(x,y){
-    const R2=BRUSH*BRUSH;
-    for(let k=0;k<needList.length;k++){
-      const n=needList[k]; if(got.has(n[0])) continue;
-      const dx=n[1]-x, dy=n[2]-y; if(dx*dx+dy*dy<=R2) got.add(n[0]);
-    }
-  }
-  function tstroke(x,y){
-    if(lastP){ const px=lastP[0], py=lastP[1], steps=Math.max(1, Math.hypot(x-px,y-py)/5|0);
-      for(let s=1;s<=steps;s++) tmark(px+(x-px)*s/steps, py+(y-py)*s/steps); }
-    tmark(x,y); lastP=[x,y]; paint(null);
-    if(!tDone && got.size/tNeed>=DONE) completeTrace();
-  }
-  function completeTrace(){
-    tDone=true; tDraw=false; showStart=false; cancelAnimationFrame(guideRAF);
-    got=new Set(need); renderTrace();                  // pilnai nuspalvinta raidė – gražus rezultatas
-    celebrateUni($("tUni"));
-    sparkle($("tUni")); sparkle(tcv); confetti(); lSolved++;
-    $("tMsg").textContent="Puiku! Pasidžiauk 🎉  paspausk ▶";
-    $("tCount").textContent="Vedžiok · "+lSolved+" ⭐";
-    cheer(); awardStar(tcv);
-    $("tNext").hidden=false;
-  }
-  function newTrace(){
-    tDone=false; tDraw=false; lastP=null; got=new Set(); $("tNext").hidden=true;
-    lTarget=LETTERS[lOrder[lIdx%lOrder.length]];
-    buildGhost(lTarget);
-    $("tMsg").textContent=""; $("tCount").textContent="Vedžiok · "+lSolved+" ⭐"; $("progress").textContent="Vedžiok";
-    runGuide(); sayLetter(lTarget);
-  }
-  function startTrace(){ updateCompanion(); lOrder=LETTERS.map((_,i)=>i); shuffleArr(lOrder); lIdx=0; lSolved=0; newTrace(); }
-
-  tcv.addEventListener("pointerdown",e=>{ if(tDone) return; showStart=false; cancelAnimationFrame(guideRAF); tDraw=true; lastP=null; try{tcv.setPointerCapture(e.pointerId)}catch(_){ } const p=tpos(e); tstroke(p[0],p[1]); e.preventDefault(); });
-  tcv.addEventListener("pointermove",e=>{ if(!tDraw||tDone) return; const p=tpos(e); tstroke(p[0],p[1]); e.preventDefault(); });
-  tcv.addEventListener("pointerup",()=>{ tDraw=false; lastP=null; });
-  tcv.addEventListener("pointercancel",()=>{ tDraw=false; lastP=null; });
-  $("tClear").onclick=()=>{ got=new Set(); tDone=false; lastP=null; $("tNext").hidden=true; $("tMsg").textContent=""; runGuide(); };
-  $("tSay").onclick=()=>sayLetter(lTarget);
-  $("tUni").onclick=()=>sayLetter(lTarget);
-  $("tNext").onclick=()=>{ lIdx++; newTrace(); };
-
-  // ---- Bendras žodžių su pradine raide rinkinys ----
-  let LPOOL=null;
-  function lpool(){
-    if(LPOOL) return LPOOL;
-    const seen=new Set(), p=[];
-    LEVELS.forEach(L=> L.words && L.words.forEach(w=>{
-      if(w.sentence || !w.emoji) return;
-      const word=(w.word || (w.syll? w.syll.join("") : "")); if(!word) return;
-      const first=word[0]; if(!LETTERS.includes(first)) return;
-      if(seen.has(w.emoji)) return; seen.add(w.emoji);
-      p.push({emoji:w.emoji, word:word, first:first, say:w.say});
-    }));
-    LPOOL=p; return p;
-  }
-  function asW(o){ return {word:o.word, syll:[o.word], emoji:o.emoji, say:o.say}; }
-
-  // ---- Garsas: paveikslėlis -> pradinė raidė ----
-  let sOrder=[], sIdx=0, sSolved=0, sTarget=null;
-  function startSnd(){ const pool=lpool(); sOrder=pool.map((_,i)=>i); shuffleArr(sOrder); sIdx=0; sSolved=0; updateCompanion(); newSnd(); }
-  function newSnd(){
-    const pool=lpool(); sTarget=pool[sOrder[sIdx%sOrder.length]];
-    $("sPic").textContent=sTarget.emoji;
-    const others=LETTERS.filter(L=>L!==sTarget.first); shuffleArr(others);
-    const opts=shuffleArr([sTarget.first, others[0], others[1], others[2]]);
-    const box=$("sOpts"); box.innerHTML="";
-    opts.forEach(L=>{ const b=document.createElement("button"); b.className="lopt"; b.type="button"; b.textContent=L; b.onclick=()=>chooseSnd(L,b); box.appendChild(b); });
-    dropIn(box);
-    $("sMsg").textContent=""; $("sCount").textContent="Garsas · "+sSolved+" ⭐"; $("progress").textContent="Garsas"; $("sNext").hidden=true;
-    sayWord(asW(sTarget), true);
-  }
-  function chooseSnd(L,btn){
-    if(L===sTarget.first){
-      btn.classList.add("right"); sparkle($("sPic")); sSolved++;
-      [...$("sOpts").children].forEach(b=>b.disabled=true);
-      cheer();
-      $("sMsg").textContent="Šaunuolytė! 🎉  paspausk ▶"; $("sCount").textContent="Garsas · "+sSolved+" ⭐";
-      awardStar(btn); $("sNext").hidden=false;
-    } else { btn.classList.add("wrong"); btn.disabled=true; nudge(); $("sMsg").textContent="Bandyk dar 🙂"; }
-  }
-  $("sSay").onclick=()=>{ if(sTarget) sayWord(asW(sTarget), true); };
-  $("sPic").onclick=()=>{ if(sTarget) sayWord(asW(sTarget), true); };
-  $("sNext").onclick=()=>{ sIdx++; newSnd(); };
-
-  // ---- Raidė -> paveikslėlis ----
-  let qOrder=[], qIdx=0, qSolved=0, qTarget=null, qLetterVal=null, qByFirst={};
-  function startL2P(){
-    const pool=lpool(); qByFirst={}; pool.forEach(o=>{ (qByFirst[o.first]=qByFirst[o.first]||[]).push(o); });
-    qOrder=Object.keys(qByFirst); shuffleArr(qOrder); qIdx=0; qSolved=0; updateCompanion(); newL2P();
-  }
-  function newL2P(){
-    qLetterVal=qOrder[qIdx%qOrder.length];
-    qTarget=shuffleArr(qByFirst[qLetterVal].slice())[0];
-    const pool=lpool(); const others=pool.filter(o=>o.first!==qLetterVal && o.emoji!==qTarget.emoji); shuffleArr(others);
-    const seen=new Set([qTarget.emoji]), dist=[];
-    for(const o of others){ if(seen.has(o.emoji)) continue; seen.add(o.emoji); dist.push(o); if(dist.length>=3) break; }
-    const opts=shuffleArr([qTarget, ...dist]);
-    $("qLetter").textContent=qLetterVal;
-    const box=$("qOpts"); box.innerHTML="";
-    opts.forEach(o=>{ const b=document.createElement("button"); b.className="popt"; b.type="button"; b.textContent=o.emoji; b.onclick=()=>chooseL2P(o,b); box.appendChild(b); });
-    dropIn(box);
-    $("qMsg").textContent=""; $("qCount").textContent="Raidė · "+qSolved+" ⭐"; $("progress").textContent="Raidė"; $("qNext").hidden=true;
-    sayLetter(qLetterVal);
-  }
-  function chooseL2P(o,btn){
-    if(o===qTarget){
-      btn.classList.add("right"); sparkle(btn); qSolved++;
-      [...$("qOpts").children].forEach(b=>b.disabled=true);
-      cheer();
-      $("qMsg").textContent="Šaunuolytė! 🎉  paspausk ▶"; $("qCount").textContent="Raidė · "+qSolved+" ⭐";
-      awardStar(btn); $("qNext").hidden=false;
-    } else { btn.classList.add("wrong"); btn.disabled=true; nudge(); $("qMsg").textContent="Bandyk dar 🙂"; }
-  }
-  $("qLetter").onclick=()=>sayLetter(qLetterVal);
-  $("qSay").onclick=()=>{ if(qLetterVal) sayLetter(qLetterVal); };
-  $("qNext").onclick=()=>{ qIdx++; newL2P(); };
-
-  // ---- Surask raidę žodyje ----
-  let fPool=[], fOrder=[], fIdx=0, fSolved=0, fWordObj=null, fTargetLetter=null;
-  function startFind(){
-    fPool=lpool().filter(o=>[...o.word].some(ch=>LETTERS.includes(ch)));
-    fOrder=fPool.map((_,i)=>i); shuffleArr(fOrder); fIdx=0; fSolved=0; updateCompanion(); newFind();
-  }
-  function newFind(){
-    fWordObj=fPool[fOrder[fIdx%fOrder.length]];
-    const chars=[...fWordObj.word];
-    const present=[...new Set(chars.filter(ch=>LETTERS.includes(ch)))]; shuffleArr(present);
-    fTargetLetter=present[0];
-    $("fLetter").textContent=fTargetLetter;
-    const row=$("fWord"); row.innerHTML="";
-    chars.forEach((ch,i)=>{ const b=document.createElement("button"); b.className="findtile"; b.type="button"; b.textContent=ch;
-      b.style.color=PALETTE[i%PALETTE.length]; b.onclick=()=>chooseFind(ch,b); row.appendChild(b); });
-    dropIn(row);
-    $("fMsg").textContent=""; $("fCount").textContent="Rask raidę · "+fSolved+" ⭐"; $("progress").textContent="Rask raidę"; $("fNext").hidden=true;
-    sayLetter(fTargetLetter);
-  }
-  function chooseFind(ch,btn){
-    if(ch===fTargetLetter){
-      btn.classList.add("right"); sparkle(btn); fSolved++;
-      [...$("fWord").children].forEach(b=>b.disabled=true);
-      cheer();
-      $("fMsg").textContent="Šaunuolytė! 🎉  paspausk ▶"; $("fCount").textContent="Rask raidę · "+fSolved+" ⭐";
-      awardStar(btn); $("fNext").hidden=false;
-    } else { btn.classList.remove("wrong"); void btn.offsetWidth; btn.classList.add("wrong"); nudge(); $("fMsg").textContent="Bandyk dar 🙂"; }
-  }
-  $("fLetter").onclick=()=>sayLetter(fTargetLetter);
-  $("fSay").onclick=()=>{ if(fTargetLetter) sayLetter(fTargetLetter); };
-  $("fNext").onclick=()=>{ fIdx++; newFind(); };
-
-  // ---- Rašyk: išgirsk ir parašyk raidę iš atminties ----
-  const wcv=$("wCanvas"), wctx=wcv.getContext("2d"), wgcv=$("wGhost"), wgctx=wgcv.getContext("2d");
-  const WN=24;
-  let TEMPLATES=null;
-  let wOrder=[], wIdx=0, wSolved=0, wTarget=null, wDraw=false, wLast=null, wInked=false, wDone=false;
-
-  function maskAlpha(L){ const m=document.createElement("canvas"); m.width=TS;m.height=TS; const c=m.getContext("2d"); c.font=TFONT;c.textAlign="center";c.textBaseline="middle";c.fillStyle="#000";c.fillText(L,TS/2,TS/2); return c.getImageData(0,0,TS,TS).data; }
-  function gridFromAlpha(data){
-    let minX=TS,minY=TS,maxX=0,maxY=0,found=false;
-    for(let y=0;y<TS;y++)for(let x=0;x<TS;x++){ if(data[(y*TS+x)*4+3]>60){ found=true; if(x<minX)minX=x; if(x>maxX)maxX=x; if(y<minY)minY=y; if(y>maxY)maxY=y; } }
-    const g=new Uint8Array(WN*WN); if(!found) return g;
-    const w=Math.max(1,maxX-minX), h=Math.max(1,maxY-minY);
-    for(let gy=0;gy<WN;gy++)for(let gx=0;gx<WN;gx++){ const sx=(minX+(gx+0.5)/WN*w)|0, sy=(minY+(gy+0.5)/WN*h)|0; if(data[(sy*TS+sx)*4+3]>60) g[gy*WN+gx]=1; }
-    return g;
-  }
-  function buildTemplates(){ if(TEMPLATES) return; TEMPLATES={}; LETTERS.forEach(L=>{ TEMPLATES[L]=gridFromAlpha(maskAlpha(L)); }); }
-  function classifyWrite(){
-    const g=gridFromAlpha(wctx.getImageData(0,0,TS,TS).data);
-    let gc=0; for(let i=0;i<g.length;i++) gc+=g[i];
-    if(gc<8) return {letter:null,iou:0,target:0};
-    let best=null,bestIoU=0,tIoU=0;
-    for(const L of LETTERS){ const t=TEMPLATES[L]; let inter=0,uni=0; for(let i=0;i<t.length;i++){ const a=t[i],b=g[i]; if(a|b)uni++; if(a&b)inter++; } const iou=uni?inter/uni:0; if(L===wTarget) tIoU=iou; if(iou>bestIoU){bestIoU=iou;best=L;} }
-    return {letter:best,iou:bestIoU,target:tIoU};
-  }
-  function startWrite(){ buildTemplates(); updateCompanion(); wOrder=LETTERS.map((_,i)=>i); shuffleArr(wOrder); wIdx=0; wSolved=0; newWrite(); }
-  function newWrite(){
-    wDone=false; wInked=false; wLast=null;
-    wctx.clearRect(0,0,TS,TS); wgctx.clearRect(0,0,TS,TS);
-    wTarget=LETTERS[wOrder[wIdx%wOrder.length]];
-    $("wNext").hidden=true; $("wMsg").textContent=""; $("wCount").textContent="Rašyk · "+wSolved+" ⭐"; $("progress").textContent="Rašyk";
-    sayLetter(wTarget);
-  }
-  function showHint(){ wgctx.clearRect(0,0,TS,TS); wgctx.font=TFONT; wgctx.textAlign="center"; wgctx.textBaseline="middle"; wgctx.fillStyle="#ECE5FB"; wgctx.fillText(wTarget, TS/2, TS/2); }
-  function wpos(e){ const r=wcv.getBoundingClientRect(); return [(e.clientX-r.left)/r.width*TS,(e.clientY-r.top)/r.height*TS]; }
-  function wStroke(x,y){
-    wctx.strokeStyle="#7C5CBF"; wctx.fillStyle="#7C5CBF"; wctx.lineWidth=16; wctx.lineCap="round"; wctx.lineJoin="round";
-    if(wLast){ wctx.beginPath(); wctx.moveTo(wLast[0],wLast[1]); wctx.lineTo(x,y); wctx.stroke(); }
-    else { wctx.beginPath(); wctx.arc(x,y,8,0,7); wctx.fill(); }
-    wLast=[x,y]; wInked=true;
-  }
-  function checkWrite(){
-    if(wDone) return;
-    if(!wInked){ $("wMsg").textContent="Parašyk raidę ✏️"; return; }
-    const res=classifyWrite();
-    if((res.letter===wTarget && res.iou>=0.34) || res.target>=0.42){
-      wDone=true; wSolved++; sparkle(wcv); confetti(); cheer();
-      $("wMsg").textContent="Šaunuolytė! 🎉  paspausk ▶"; $("wCount").textContent="Rašyk · "+wSolved+" ⭐";
-      awardStar(wcv); $("wNext").hidden=false;
-    } else {
-      nudge(); $("wMsg").textContent="Beveik! Štai užuomina — apvesk ir bandyk dar";
-      showHint(); wctx.clearRect(0,0,TS,TS); wInked=false; wLast=null;
-    }
-  }
-  wcv.addEventListener("pointerdown",e=>{ if(wDone) return; wDraw=true; wLast=null; try{wcv.setPointerCapture(e.pointerId)}catch(_){ } const p=wpos(e); wStroke(p[0],p[1]); e.preventDefault(); });
-  wcv.addEventListener("pointermove",e=>{ if(!wDraw||wDone) return; const p=wpos(e); wStroke(p[0],p[1]); e.preventDefault(); });
-  wcv.addEventListener("pointerup",()=>{ wDraw=false; wLast=null; });
-  wcv.addEventListener("pointercancel",()=>{ wDraw=false; wLast=null; });
-  $("wSay").onclick=()=>{ if(wTarget) sayLetter(wTarget); };
-  $("wClear").onclick=()=>{ wctx.clearRect(0,0,TS,TS); wgctx.clearRect(0,0,TS,TS); wInked=false; wLast=null; wDone=false; $("wMsg").textContent=""; };
-  $("wCheck").onclick=checkWrite;
-  $("wNext").onclick=()=>{ wIdx++; newWrite(); };
 
   // ---- Įrašytas balsas (telefone) ----
-  function recKey(w){ return w.sentence ? w.words.join(" ") : (w.word||w.syll.join("")); }
+  function recKey(w){ return w.sentence ? w.words.join(" ") : (w.say||w.word||w.syll.join("")); }
   let dbP;
   function db(){
     if(!dbP) dbP=new Promise((res,rej)=>{
@@ -1262,48 +801,14 @@
   async function putRec(k,b){ const d=await db(); return new Promise((res,rej)=>{ const t=d.transaction("rec","readwrite"); t.objectStore("rec").put(b,k); t.oncomplete=res; t.onerror=()=>rej(t.error); }); }
   async function getRec(k){ const d=await db(); return new Promise((res,rej)=>{ const t=d.transaction("rec","readonly"); const q=t.objectStore("rec").get(k); q.onsuccess=()=>res(q.result||null); q.onerror=()=>rej(q.error); }); }
   async function delRec(k){ const d=await db(); return new Promise((res,rej)=>{ const t=d.transaction("rec","readwrite"); t.objectStore("rec").delete(k); t.oncomplete=res; t.onerror=()=>rej(t.error); }); }
-
-  // ---- Atsarginė kopija (eksportas / importas) ----
-  function blobToB64(blob){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(String(r.result).split(",")[1]||""); r.onerror=()=>rej(r.error); r.readAsDataURL(blob); }); }
-  function b64ToBlob(b64,type){ const bin=atob(b64||""), len=bin.length, arr=new Uint8Array(len); for(let i=0;i<len;i++) arr[i]=bin.charCodeAt(i); return new Blob([arr],{type:type||"audio/webm"}); }
-  async function allRecs(){
-    const d=await db();
-    return new Promise((res,rej)=>{ const t=d.transaction("rec","readonly"), store=t.objectStore("rec"), out=[], cur=store.openCursor();
-      cur.onsuccess=e=>{ const c=e.target.result; if(c){ out.push([c.key,c.value]); c.continue(); } else res(out); };
-      cur.onerror=()=>rej(cur.error); });
-  }
-  async function exportData(){
-    try{
-      toast("Ruošiama atsarginė kopija…");
-      const entries=await allRecs(); const recs=[];
-      for(const [k,blob] of entries){ recs.push({key:k, type:(blob&&blob.type)||"audio/webm", data:await blobToB64(blob)}); }
-      const payload={ app:"skaitymas", v:1, when:new Date().toISOString(), progress:{stars,weights,locked:[...locked]}, recordings:recs };
-      const blob=new Blob([JSON.stringify(payload)],{type:"application/json"});
-      const url=URL.createObjectURL(blob), a=document.createElement("a");
-      a.href=url; a.download="skaitymas-atsargine-kopija.json"; document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(()=>URL.revokeObjectURL(url),1500);
-      toast("Atsarginė kopija paruošta ("+recs.length+" įrašų) ✅");
-    }catch(e){ toast("Nepavyko sukurti kopijos."); }
-  }
-  async function importData(file){
-    try{
-      const o=JSON.parse(await file.text());
-      if(!o || o.app!=="skaitymas" || !Array.isArray(o.recordings)){ toast("Netinkamas failas."); return; }
-      let n=0;
-      for(const r of o.recordings){ try{ await putRec(r.key, b64ToBlob(r.data, r.type)); recSet.add(r.key); n++; }catch(e){} }
-      if(o.progress){ if(typeof o.progress.stars==="number") stars=o.progress.stars; if(o.progress.weights && typeof o.progress.weights==="object") weights=o.progress.weights; if(Array.isArray(o.progress.locked)) locked=new Set(o.progress.locked); save(); $("starCount").textContent=stars; updateCompanion(); renderLevelLabels(); }
-      renderRec();
-      toast("Atkurta: "+n+" įrašų ✅");
-    }catch(e){ toast("Nepavyko nuskaityti failo."); }
-  }
   let recSet=new Set();
   async function loadRecKeys(){ try{ const d=await db(); const t=d.transaction("rec","readonly"); const q=t.objectStore("rec").getAllKeys(); q.onsuccess=()=>{ recSet=new Set(q.result); if(mode==="rec") renderRec(); }; }catch(e){} }
 
   let recList=[], recIdx=0, mediaRec=null, chunks=[];
   function buildRecList(){ const seen=new Set(); recList=[];
-    PRAISE.forEach(p=>{ if(!seen.has(p)){ seen.add(p); recList.push({key:p,label:"🎉 Pagyrimas: "+p}); } });
-    if(!seen.has(ENCOURAGE)){ seen.add(ENCOURAGE); recList.push({key:ENCOURAGE,label:"🙂 Padrąsinimas: "+ENCOURAGE}); }
     LETTERS.forEach(L=>{ if(!seen.has(L)){ seen.add(L); recList.push({key:L,label:L}); } });
+    ["vienas","du","trys","keturi","penki","šeši","septyni","aštuoni","devyni","dešimt"].forEach(k=>{ if(!seen.has(k)){ seen.add(k); recList.push({key:k,label:k}); } });
+    ["apskritimas","kvadratas","trikampis","stačiakampis","žvaigždė","širdelė","rombas","ovalas"].forEach(k=>{ if(!seen.has(k)){ seen.add(k); recList.push({key:k,label:k}); } });
     LEVELS.forEach(L=> L.words && L.words.forEach(w=>{ const k=recKey(w); if(!seen.has(k)){ seen.add(k); recList.push({key:k,label:k}); } }));
   }
   function openRec(){ if(!recList.length) buildRecList(); renderRec(); }
@@ -1344,31 +849,12 @@
   $("recNext").onclick=()=>recGo(1);
   $("recPlay").onclick=async ()=>{ const ok=await playRec(recList[recIdx].key); if(!ok) $("recStatus").textContent="Dar neįrašyta."; };
   $("recDel").onclick=async ()=>{ const k=recList[recIdx].key; try{ await delRec(k); recSet.delete(k); }catch(e){} renderRec(); };
-  $("recExport").onclick=exportData;
-  $("recImport").onclick=()=>$("recFile").click();
-  $("recFile").onchange=e=>{ const f=e.target.files&&e.target.files[0]; if(f) importData(f); e.target.value=""; };
 
   // pagrindinis atkūrimas: jei yra įrašas – grok jį, kitaip robotas
   async function sayWord(w, wordOnly, force){
     if(!audioOn && !force) return;
     if(await playRec(recKey(w))) return;
     speak(w, wordOnly);
-  }
-
-  // ---- Pagyrimai / padrąsinimai (tėvų įrašomi) ----
-  const PRAISE=["VALIO","ATSPĖJAI","ŠAUNUOLYTĖ","VAU","PUIKU"];
-  const ENCOURAGE="PABANDYK DAR KARTELĮ";
-  function ttsSay(t){ if(!("speechSynthesis" in window)) return; const v=ltVoice(); if(!v) return; speechSynthesis.cancel(); utter(t.toLowerCase(),.95,v); }
-  async function cheer(){
-    if(!audioOn) return;
-    const have=PRAISE.filter(k=>recSet.has(k));
-    if(have.length && await playRec(have[(Math.random()*have.length)|0])) return;
-    ttsSay(PRAISE[(Math.random()*PRAISE.length)|0]);
-  }
-  async function nudge(){
-    if(!audioOn) return;
-    if(recSet.has(ENCOURAGE) && await playRec(ENCOURAGE)) return;
-    ttsSay("pabandyk dar");
   }
 
   buildRecList(); loadRecKeys();
@@ -1387,39 +873,42 @@
     }
   })();
 
-  // ---- Paleidimas: užkrauname išsaugotą progresą ----
-  load();
-  $("starCount").textContent=stars;
-  updateCompanion();
-  renderLevelLabels();
-  function resetProgress(){
-    stars=0; weights={}; save();
-    $("starCount").textContent=stars; updateCompanion();
-    if(mode==="letters"){ lSolved=0; $("lCount").textContent="Raidės · 0 ⭐"; }
-    if(mode==="trace"){ lSolved=0; $("tCount").textContent="Vedžiok · 0 ⭐"; }
-    toast("Žvaigždės atstatytos – nuo nulio 🌱");
+  // ---- Žvaigždučių sistema (išsaugoma) ----
+  let stars=0;
+  try{ stars=parseInt(localStorage.getItem("sk_stars")||"0",10)||0; }catch(e){}
+  function uniFor(n){ return n<10?"🥚" : n<25?"🐣" : n<50?"🦄" : n<100?"🦄✨" : "🦄🌈"; }
+  function paintJar(){ $("starCount").textContent=stars; $("uniStage").textContent=uniFor(stars); }
+  function addStar(fromEl){
+    stars++; try{ localStorage.setItem("sk_stars",String(stars)); }catch(e){}
+    // skrendanti žvaigždutė iš atsakymo į stiklainį
+    try{
+      const s=document.createElement("div"); s.className="flystar"; s.textContent="⭐";
+      const a=(fromEl||document.body).getBoundingClientRect(), j=$("jar").getBoundingClientRect();
+      s.style.left=(a.left+a.width/2)+"px"; s.style.top=(a.top+a.height/2)+"px";
+      document.body.appendChild(s);
+      requestAnimationFrame(()=>{ s.style.transform="translate("+(j.left+j.width/2-(a.left+a.width/2))+"px,"+(j.top+j.height/2-(a.top+a.height/2))+"px) scale(.5)"; s.style.opacity=".2"; });
+      setTimeout(()=>{ s.remove(); paintJar(); }, 820);
+    }catch(e){ paintJar(); }
+    if(stars%10===0) setTimeout(()=>celebrate(), 900);
   }
-  let jarHold=null, jarHeld=false;
-  function startHold(){ jarHeld=false; clearTimeout(jarHold); jarHold=setTimeout(()=>{ jarHeld=true; if(confirm("Atstatyti visas žvaigždes ir progresą iš naujo?")) resetProgress(); }, 750); }
-  function endHold(){ clearTimeout(jarHold); }
-  const jarEl=$("starjar");
-  jarEl.addEventListener("pointerdown",startHold);
-  jarEl.addEventListener("pointerup",endHold);
-  jarEl.addEventListener("pointerleave",endHold);
-  jarEl.addEventListener("pointercancel",endHold);
-  jarEl.onclick=()=>{
-    if(jarHeld){ jarHeld=false; return; }     // ilgas paspaudimas – ne paprastas tapas
-    jarEl.classList.remove("bump"); void jarEl.offsetWidth; jarEl.classList.add("bump");
-    openPrizes();
-  };
-  $("prizesClose").onclick=closePrizes;
-  $("prizes").addEventListener("click",e=>{ if(e.target===$("prizes")) closePrizes(); });
+  function celebrate(){
+    $("cUni").textContent=uniFor(stars);
+    $("cSub").textContent="Surinkai jau "+stars+" ⭐! Vienaragis auga!";
+    const ov=$("celebrate"); ov.classList.add("show");
+    for(let i=0;i<16;i++){
+      const d=document.createElement("div"); d.className="crain";
+      d.textContent=["⭐","🌟","✨","💖","🌈"][i%5];
+      d.style.left=(Math.random()*96)+"vw";
+      d.style.animationDuration=(2.2+Math.random()*2)+"s";
+      d.style.animationDelay=(Math.random()*1.2)+"s";
+      ov.appendChild(d);
+      setTimeout(()=>d.remove(),5200);
+    }
+  }
+  $("cClose").onclick=()=>$("celebrate").classList.remove("show");
+  paintJar();
 
-  const lg0=LEVELS[lvl].game;
-  if(lg0) setMode(lg0); else setLevel();
-
-  // ---- PWA: registruojam service worker (kad veiktų be interneto / būtų įdiegiama) ----
-  if("serviceWorker" in navigator){ window.addEventListener("load",()=>{ navigator.serviceWorker.register("sw.js").catch(()=>{}); }); }
+  if(LEVELS[lvl].letterGame) setMode("letters", LEVELS[lvl].set); else setLevel();
 </script>
 </body>
 </html>
